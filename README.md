@@ -1,3 +1,33 @@
+## 1. Install dependencies
+```
+pip3 install -r requirements.txt
+```
+
+## 2. Run the Flask Application
+```
+python3 app.py
+```
+You can test server is running by checking `http://127.0.0.1:5000/health`. Response should say:
+```
+App is running!
+```
+
+## Examples:
+- Add a new user named "Joe Bruin"
+```
+curl -X POST http://127.0.0.1:5000/add_user \
+-H "Content-Type: application/json" \
+-d '{
+    "avg_cal_intake": 1800,
+    "date_of_birth": "1998-05-15",
+    "email": "joebruin@g.ucla.edu",
+    "goal": "I want to bulk up.",
+    "height": 180,
+    "name": "Joe Bruin",
+    "weight": 180
+}'
+```
+
 # Repository Template
 
 [![Build Status](https://app.travis-ci.com/melaasar/cs130-template.svg?branch=master)](https://app.travis-ci.com/github/melaasar/cs130-template)
