@@ -3,7 +3,19 @@
 pip3 install -r requirements.txt
 ```
 
-## 2. Run the Flask Application
+## 2. Install dependencies
+
+```
+Get DB credentials
+1. Navigate to Firebase Project Settings / Service Accounts
+     https://console.firebase.google.com/u/1/project/cs130-group-project-9b447/settings/serviceaccounts/adminsdk
+2. Press Generate New Private Key (in Python)
+3. Add the created json file to your repo
+4. Rename the file as serviceAccountKey.json
+```
+
+## 3. Run the Flask Application
+
 ```
 python3 app.py
 ```
