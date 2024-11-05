@@ -11,8 +11,13 @@ function Home() {
 
   return (
     <div className="home-container">
-      <h2>Home - Protected Content</h2>
-      <button onClick={handleLogout}>Logout</button>
+      <nav className="home-navbar">
+        <h2 className="home-title">Healthify</h2>
+        <button onClick={handleLogout} className="logout-button">Logout</button>
+      </nav>
+      <div className="home-content">
+        <h2>Home - Protected Content</h2>
+      </div>
     </div>
   );
 }
