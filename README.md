@@ -3,6 +3,13 @@
 pip3 install -r requirements.txt
 ```
 
+## 1.1 For React App
+'''
+Navigate to the healtify folder:
+npm install
+npm install firebase
+npm start -> to run the application
+'''
 
 ## 2. Get DB credentials
 1. Navigate to Firebase Project Settings / Service Accounts
