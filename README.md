@@ -19,6 +19,7 @@ npm start -> to run the application
 4. Rename the file as serviceAccountKey.json
 
 ## 3. Run the Flask Application
+In another terminal, run:
 
 ```
 python3 app.py
