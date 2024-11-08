@@ -18,7 +18,15 @@ npm start -> to run the application
 3. Add the created json file to your repo
 4. Rename the file as serviceAccountKey.json
 
-## 3. Run the Flask Application
+## 3. Obtain API key
+1. Go to https://aistudio.google.com/app/apikey
+2. Generate an API token
+3. Paste the token in `.env` file
+```
+GOOGLE_API_KEY=<API-key>
+```
+
+## 4. Run the Flask Application
 In another terminal, run:
 
 ```
