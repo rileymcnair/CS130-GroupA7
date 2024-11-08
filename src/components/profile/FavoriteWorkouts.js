@@ -6,7 +6,7 @@ const FavoriteWorkouts = ({ workoutDetails, profileData, handleWorkoutDialogOpen
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5">Favorited Workouts</Typography>
+        <Typography variant="h5">Favorite Workouts</Typography>
         <Button
           startIcon={<AddIcon />}
           variant="contained"

@@ -1,7 +1,12 @@
 from flask import Flask, request, jsonify
-from flask_cors import CORS, cross_origin
+from flask_cors import CORS
 import firebase_admin
 from firebase_admin import credentials, firestore
+
+import os
+import google.generativeai as genai
+from dotenv import load_dotenv
+import json
 
 app = Flask(__name__)
 CORS(app)  # enable CORS for javascript 
@@ -21,6 +26,10 @@ try:
     print("Firestore client initialized successfully.")
 except Exception as e:
     print(f"Error initializing Firestore client: {e}")
+
+# load API key from .env file
+load_dotenv()
+genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
 
 # route to health check
 @app.route('/health', methods=['GET'])
@@ -103,6 +112,9 @@ def remove_favorite_meal():
     email = data.get('email')
     meal_id = data.get('id')
     
+    if not email or not meal_id:
+        return jsonify({"error": "Email and Meal ID are required"}), 400
+    
     try:
         user_query = db.collection('users').where('email', '==', email).limit(1)
         user_docs = user_query.get()
@@ -115,8 +127,49 @@ def remove_favorite_meal():
             'favorited_meals': firestore.ArrayRemove([meal_id])
         })
         
-        return jsonify({"message": "Meal removed from favorites"}), 200
+        meal_ref = db.collection('Meal').document(meal_id)
+        meal_doc = meal_ref.get()
+
+        if not meal_doc.exists:
+            return jsonify({"error": "Meal not found"}), 404
+
+        meal_ref.delete()
+
+        return jsonify({"message": "Meal removed from favorites and deleted successfully"}), 200
     
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/remove_meal', methods=['DELETE'])
+def delete_meal():
+    data = request.json
+    meal_id = data.get('meal_id')
+
+    if not meal_id:
+        return jsonify({"error": "Meal ID is required"}), 400
+
+    try:
+        meal_ref = db.collection('Meal').document(meal_id)
+        meal_doc = meal_ref.get()
+
+        if not meal_doc.exists:
+            return jsonify({"error": "Meal not found"}), 404
+
+        meal_ref.delete()
+
+        email = data.get('email')
+        if email:
+            user_query = db.collection('users').where('email', '==', email).limit(1)
+            user_docs = user_query.get()
+
+            if user_docs:
+                user_ref = user_docs[0].reference
+                user_ref.update({
+                    'favorited_meals': firestore.ArrayRemove([meal_id])
+                })
+
+        return jsonify({"message": "Meal deleted successfully"}), 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
@@ -125,6 +178,9 @@ def remove_favorite_workout():
     data = request.json
     email = data.get('email')
     workout_id = data.get('id')
+    
+    if not email or not workout_id:
+        return jsonify({"error": "Email and Workout ID are required"}), 400
     
     try:
         user_query = db.collection('users').where('email', '==', email).limit(1)
@@ -137,8 +193,16 @@ def remove_favorite_workout():
         user_ref.update({
             'favorited_workouts': firestore.ArrayRemove([workout_id])
         })
-        
-        return jsonify({"message": "Workout removed from favorites"}), 200
+
+        workout_ref = db.collection('Workout').document(workout_id)
+        workout_doc = workout_ref.get()
+
+        if not workout_doc.exists:
+            return jsonify({"error": "Workout not found"}), 404
+
+        workout_ref.delete()
+
+        return jsonify({"message": "Workout removed from favorites and deleted successfully"}), 200
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -178,6 +242,61 @@ def create_favorite_meal():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/add_meal_to_favorites', methods=['POST'])
+def add_to_favorites():
+    data = request.json
+    meal_id = data.get('meal_id')
+    email = data.get('email')
+
+    if not meal_id or not email:
+        return jsonify({"error": "Meal ID and email are required"}), 400
+
+    try:
+        user_query = db.collection('users').where('email', '==', email).limit(1)
+        user_docs = user_query.get()
+
+        if not user_docs:
+            return jsonify({"error": "User not found"}), 404
+
+        user_ref = user_docs[0].reference
+
+        user_ref.update({
+            'favorited_meals': firestore.ArrayUnion([meal_id])
+        })
+
+        return jsonify({
+            "message": "Meal added to favorites successfully",
+            "meal_id": meal_id
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/check_is_favorite_meal', methods=['POST'])
+def check_favorite():
+    data = request.json
+    meal_id = data.get('meal_id')
+    email = data.get('email')
+
+    if not meal_id or not email:
+        return jsonify({"error": "Meal ID and email are required"}), 400
+
+    try:
+        user_query = db.collection('users').where('email', '==', email).limit(1)
+        user_docs = user_query.get()
+
+        if not user_docs:
+            return jsonify({"error": "User not found"}), 404
+
+        user_data = user_docs[0].to_dict()
+        is_favorite = meal_id in (user_data.get('favorited_meals') or [])
+
+        return jsonify({
+            "is_favorite": is_favorite
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/create_favorite_workout', methods=['POST'])
 def create_favorite_workout():
@@ -261,6 +380,92 @@ def get_workout_details():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/get_user_meals', methods=['GET'])
+def get_user_meals():
+    email = request.args.get('email')
+    if not email:
+        return jsonify({"error": "Email parameter is required"}), 400
+
+    try:
+        user_query = db.collection('users').where('email', '==', email).limit(1)
+        user_docs = user_query.get()
+
+        if not user_docs:
+            return jsonify({"error": "User not found"}), 404
+
+        user_data = user_docs[0].to_dict()
+        meal_ids = user_data.get('meals', [])
+
+        if not meal_ids:
+            return jsonify({"message": "No meals found for this user"}), 404
+
+        meal_list = []
+        for meal_id in meal_ids:
+            meal_ref = db.collection('Meal').document(meal_id)
+            meal_doc = meal_ref.get()
+
+            if meal_doc.exists:
+                meal_data = meal_doc.to_dict()
+                meal_data['id'] = meal_id
+                meal_list.append(meal_data)
+            else:
+                print(f"Meal with ID {meal_id} not found")
+
+        if not meal_list:
+            return jsonify({"message": "No valid meals found for this user"}), 404
+
+        return jsonify(meal_list), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/generate_meal', methods=['POST'])
+def generate_meal():
+    user_input = request.json
+    if not user_input:
+        return jsonify({"error": "Request body is required"}), 400
+
+    try:
+        model = genai.GenerativeModel('gemini-pro')
+
+        prompt = f"""
+        Create a meal recommendation based on the following criteria:
+        - Type of meal: {user_input.get('type', 'any')}
+        - Dietary preference: {user_input.get('diet', 'any')}
+        - Calorie range: {user_input.get('calories', 'any')} calories
+        - Ingredients to include: {', '.join(user_input.get('ingredients', []))}
+        - Time available: {user_input.get('time', 'any')} minutes
+
+        Respond with ONLY a JSON object that fits this schema, with no additional text:
+        {{
+            "calories": int,
+            "carbs": int,
+            "fats": int,
+            "proteins": int,
+            "ingredients": [str],
+            "type": "{user_input.get('type', 'meal')}"
+        }}
+        """
+
+        response = model.generate_content(prompt)
+
+        try:
+            meal_data = json.loads(response.text)
+        except json.JSONDecodeError:
+            return jsonify({"error": "Failed to parse model's response to JSON. Try again to generate a new response."}), 500
+
+        # store generated meal in Firestore
+        meal_ref = db.collection('Meal').add(meal_data)
+        meal_id = meal_ref[1].id
+
+        return jsonify({
+            "message": "Meal generated successfully",
+            "meal_id": meal_id,
+            "meal_data": meal_data
+        }), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 if __name__ == '__main__':
     print("Flask app is running...")

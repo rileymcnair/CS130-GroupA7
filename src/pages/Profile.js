@@ -1,20 +1,16 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { useNavigate } from 'react-router-dom';
-import { Container, Typography, Card, CardContent } from '@mui/material';
+import { Container, Typography, Card, CardContent, Box } from '@mui/material';
 
-import ProfileHeader from '../components/ProfileHeader';
-import ProfileForm from '../components/ProfileForm';
-import ProfileInfo from '../components/ProfileInfo';
-import FavoriteMeals from '../components/FavoriteMeals';
-import FavoriteWorkouts from '../components/FavoriteWorkouts';
-import AddMealDialog from '../components/AddMealDialog';
-import AddWorkoutDialog from '../components/AddWorkoutDialog';
+import ProfileForm from '../components/profile/ProfileForm';
+import ProfileInfo from '../components/profile/ProfileInfo';
+import FavoriteMeals from '../components/profile/FavoriteMeals';
+import FavoriteWorkouts from '../components/profile/FavoriteWorkouts';
+import AddMealDialog from '../components/profile/AddMealDialog';
+import AddWorkoutDialog from '../components/profile/AddWorkoutDialog';
 
 function Profile() {
-  const { user, logout } = useAuth();
-  const navigate = useNavigate();
-  const [anchorEl, setAnchorEl] = useState(null);
+  const { user } = useAuth();
   
   const [profileData, setProfileData] = useState({
     name: '',
@@ -52,18 +48,6 @@ function Profile() {
       body_parts: ''
     }]
   });
-
-  // menu handlers
-  const handleMenuOpen = (event) => setAnchorEl(event.currentTarget);
-  const handleMenuClose = () => setAnchorEl(null);
-  const handleBackToHome = () => {
-    handleMenuClose();
-    navigate('/');
-  };
-  const handleLogout = () => {
-    handleMenuClose();
-    logout();
-  };
 
   // profile handlers
   const handleEdit = () => setIsEditing(true);
@@ -284,56 +268,56 @@ function Profile() {
 
   return (
     <div>
-      <ProfileHeader
-        handleMenuOpen={handleMenuOpen}
-        handleMenuClose={handleMenuClose}
-        handleBackToHome={handleBackToHome}
-        handleLogout={handleLogout}
-        anchorEl={anchorEl}
-      />
-      
       <Container>
-        <Card sx={{ marginTop: 4 }}>
-          <CardContent>
-            <Typography variant="h5" component="div" gutterBottom>
-              Profile
-            </Typography>
-            {isEditing ? (
-              <ProfileForm
-                profileData={profileData}
-                handleChange={handleChange}
-                handleSave={handleSave}
-              />
-            ) : (
-              <ProfileInfo
-                profileData={profileData}
-                handleEdit={handleEdit}
-              />
-            )}
-          </CardContent>
-        </Card>
+        <Box sx={{ display: 'flex', gap: 3, marginTop: 4 }}>
+          <Box sx={{ minWidth: 400 }}>
+            <Card>
+              <CardContent>
+                <Typography variant="h5" component="div" gutterBottom>
+                  Profile
+                </Typography>
+                {isEditing ? (
+                  <ProfileForm
+                    profileData={profileData}
+                    handleChange={handleChange}
+                    handleSave={handleSave}
+                  />
+                ) : (
+                  <ProfileInfo
+                    profileData={profileData}
+                    handleEdit={handleEdit}
+                  />
+                )}
+              </CardContent>
+            </Card>
+          </Box>
 
-        <Card sx={{ marginTop: 4 }}>
-          <CardContent>
-            <FavoriteMeals
-              mealDetails={mealDetails}
-              profileData={profileData}
-              handleMealDialogOpen={handleMealDialogOpen}
-              removeFavorite={removeFavorite}
-            />
-          </CardContent>
-        </Card>
+          <Box sx={{ minWidth: 400 }}>
+            <Card>
+              <CardContent>
+                <FavoriteMeals
+                  mealDetails={mealDetails}
+                  profileData={profileData}
+                  handleMealDialogOpen={handleMealDialogOpen}
+                  removeFavorite={removeFavorite}
+                />
+              </CardContent>
+            </Card>
+          </Box>
 
-        <Card sx={{ marginTop: 4, marginBottom: 4 }}>
-          <CardContent>
-            <FavoriteWorkouts
-              workoutDetails={workoutDetails}
-              profileData={profileData}
-              handleWorkoutDialogOpen={handleWorkoutDialogOpen}
-              removeFavorite={removeFavorite}
-            />
-          </CardContent>
-        </Card>
+          <Box sx={{  minWidth: 400 }}>
+            <Card>
+              <CardContent>
+                <FavoriteWorkouts
+                  workoutDetails={workoutDetails}
+                  profileData={profileData}
+                  handleWorkoutDialogOpen={handleWorkoutDialogOpen}
+                  removeFavorite={removeFavorite}
+                />
+              </CardContent>
+            </Card>
+          </Box>
+        </Box>
 
         <AddMealDialog
           open={mealDialogOpen}
