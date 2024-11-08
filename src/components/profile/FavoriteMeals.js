@@ -6,7 +6,7 @@ const FavoriteMeals = ({ mealDetails, profileData, handleMealDialogOpen, removeF
   return (
     <Box>
       <Box display="flex" justifyContent="space-between" alignItems="center" mb={2}>
-        <Typography variant="h5">Favorited Meals</Typography>
+        <Typography variant="h5">Favorite Meals</Typography>
         <Button
           startIcon={<AddIcon />}
           variant="contained"
