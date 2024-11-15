@@ -105,6 +105,39 @@ def save_profile():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/historical_data', methods=['GET'])
+def get_historical_data():
+    data = request.json
+    if 'email' not in data:
+        return jsonify({"error": "Email is required"}), 400
+
+    try:
+        res = []
+        profile_ref = db.collection('users').where('email', '==', data['email'])
+        profile_docs = profile_ref.get()
+        if len(profile_docs) < 1:
+            raise Exception('no profile associated with user')
+        user_id = profile_docs[0].id
+        calendar_ref = db.collection('Calendar').where('belongs_to', '==', user_id)
+        if calendar_ref:
+            calendar_docs = calendar_ref.get()
+            for calendar in calendar_docs:
+                weeks_ids = calendar.to_dict()["weeks"]
+                for week_id in weeks_ids:
+                    week_ref = db.collection('Week').document(week_id)
+                    week_doc = week_ref.get()
+                    week_dict = week_doc.to_dict()
+                    if "days" in week_dict:
+                        for day_id in week_dict["days"].values():
+                            if day_id:
+                                day_ref = db.collection("Day").document(day_id)
+                                day_values = day_ref.get().to_dict()
+                                res.append(day_values)
+        return jsonify(res), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/remove_favorite_meal', methods=['POST'])
 def remove_favorite_meal():
