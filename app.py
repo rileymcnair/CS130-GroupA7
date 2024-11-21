@@ -500,6 +500,68 @@ def generate_meal():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/get_n_meals', methods=['GET'])
+def get_n_meals():
+    try:
+        # Fetch the first 3 documents from the 'Meal' collection
+        meals_query = db.collection('Meal').limit(3).get()
+
+        # Prepare the meal list with IDs
+        meal_list = []
+        for meal in meals_query:
+            # Log each meal's ID and data for debugging
+            print("Meal ID:", meal.id)
+            print("Meal Data:", meal.to_dict())
+
+            # Add the document's data and ID to the response
+            meal_list.append({**meal.to_dict(), 'id': meal.id})
+
+        return jsonify(meal_list), 200
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/get_favorite_meals', methods=['GET'])
+def get_favorite_meals():
+    # get favorites list from user profile, get the favorited meals
+    # Fetch the first 10 meals
+    email = request.args.get('email')
+    if not email:
+        return jsonify({"error": "Email parameter is required"}), 400
+
+    try:
+        user_query = db.collection('users').where('email', '==', email).limit(1)
+        user_docs = user_query.get()
+
+        if not user_docs:
+            return jsonify({"error": "User not found"}), 404
+
+        user_data = user_docs[0].to_dict()
+        meal_ids = user_data.get('favorited_meals', [])
+
+        if not meal_ids:
+            return jsonify({"message": "No meals found for this user"}), 404
+
+        meal_list = []
+        for meal_id in meal_ids:
+            meal_ref = db.collection('Meal').document(meal_id)
+            meal_doc = meal_ref.get()
+
+            if meal_doc.exists:
+                meal_data = meal_doc.to_dict()
+                meal_data['id'] = meal_id
+                meal_list.append(meal_data)
+            else:
+                print(f"Meal with ID {meal_id} not found")
+
+        if not meal_list:
+            return jsonify({"message": "No valid meals found for this user"}), 404
+
+        return jsonify(meal_list), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 if __name__ == '__main__':
     print("Flask app is running...")
-    app.run()
+    app.run(debug=True)
