@@ -562,6 +562,37 @@ def get_favorite_meals():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/unfavorite_meal', methods=['POST'])
+def unfavorite_meal():
+    data = request.json
+    email = data.get('email')
+    meal_id = data.get('meal_id')  # Use consistent naming as 'add_to_favorites'
+
+    if not email or not meal_id:
+        return jsonify({"error": "Email and Meal ID are required"}), 400
+
+    try:
+        # Find the user by email
+        user_query = db.collection('users').where('email', '==', email).limit(1)
+        user_docs = user_query.get()
+
+        if not user_docs:
+            return jsonify({"error": "User not found"}), 404
+
+        user_ref = user_docs[0].reference
+
+        # Remove the meal ID from the favorited_meals array
+        user_ref.update({
+            'favorited_meals': firestore.ArrayRemove([meal_id])
+        })
+
+        return jsonify({
+            "message": "Meal unfavorited successfully",
+            "meal_id": meal_id
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
 if __name__ == '__main__':
     print("Flask app is running...")
     app.run(debug=True)
