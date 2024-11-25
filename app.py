@@ -593,6 +593,44 @@ def unfavorite_meal():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+    
+@app.route('/edit_meal', methods=['POST'])
+def edit_meal():
+    data = request.json
+    email = data.get('email')
+    meal_id = data.get('meal_id')  # Meal ID to identify the meal
+    updated_meal_data = data.get('meal_data')  # Contains updated meal details
+
+    if not email or not meal_id or not updated_meal_data:
+        return jsonify({"error": "Email, Meal ID, and updated meal data are required"}), 400
+
+    try:
+        # Find the user by email
+        user_query = db.collection('users').where('email', '==', email).limit(1)
+        user_docs = user_query.get()
+
+        if not user_docs:
+            return jsonify({"error": "User not found"}), 404
+
+        # Reference to the meal document
+        meal_ref = db.collection('Meal').document(meal_id)
+        meal_doc = meal_ref.get()
+
+        if not meal_doc.exists:
+            return jsonify({"error": "Meal not found"}), 404
+
+        # Update the meal document with the new data
+        meal_ref.update(updated_meal_data)
+
+        return jsonify({
+            "message": "Meal updated successfully",
+            "meal_id": meal_id,
+            "updated_meal_data": updated_meal_data
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500    
+    
 if __name__ == '__main__':
     print("Flask app is running...")
     app.run(debug=True)

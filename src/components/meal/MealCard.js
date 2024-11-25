@@ -15,12 +15,63 @@ import {
 } from "@mui/icons-material";
 import EditIcon from "@mui/icons-material/Edit";
 import { useAuth } from "../../context/AuthContext";
-
+import MealDetailsDialog from "./MealDetailsDialog";
 import MacronutrientChart from "./MacronutrientChart";
 
 const MealCard = ({ meal, handleDelete }) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const { user } = useAuth();
+  // See Details Dialog Details
+  const [isDialogOpen, setDialogOpen] = useState(false);
+  const [userMeals, setUserMeals] = useState([]);
+
+  const handleDialogOpen = () => {
+    setDialogOpen(true);
+  };
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+  };
+  const handleUpdateCardDetails = (updatedMeal) => {
+    setUserMeals((prevMeals) =>
+      // prevMeals.map((meal) =>
+      //   meal.id === updatedMeal.id ? updatedMeal : meal // Replace the updated meal
+      // )
+      {meal.name = updatedMeal.name
+      meal.calories = updatedMeal.calories
+      meal.proteins = updatedMeal.proteins}
+    );
+    console.log("Updated meal saved to state:", updatedMeal);
+  };
+  const handleSaveMealToServer = async (updatedMeal) => {
+    try {
+      const response = await fetch("/edit_meal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.email,
+          meal_id: updatedMeal.id,
+          meal_data: {
+            name: updatedMeal.name,
+            calories: updatedMeal.calories,
+            proteins: updatedMeal.proteins,
+            fats: updatedMeal.fats,
+            carbs: updatedMeal.carbs,
+            ingredients: updatedMeal.ingredients,
+          },
+        }),
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Meal updated successfully:", data);
+      } else {
+        console.error("Failed to update meal:", await response.json());
+      }
+    } catch (error) {
+      console.error("Error updating meal:", error);
+    }
+    handleDialogClose();
+  };
 
   useEffect(() => {
     checkIfFavorite();
@@ -86,6 +137,7 @@ const MealCard = ({ meal, handleDelete }) => {
     }
   };
 
+
   return (
     <Paper
       sx={{
@@ -94,6 +146,7 @@ const MealCard = ({ meal, handleDelete }) => {
         borderRadius: 2,
         flexDirection: "column",
         display: "flex",
+        maxWidth: 330,
       }}
     >
       {/* Header Row */}
@@ -112,7 +165,7 @@ const MealCard = ({ meal, handleDelete }) => {
           onClick={handleFavoriteToggle}
           edge="end"
           color="primary"
-          sx={{ mr: 1}}
+          sx={{ mr: 1 }}
         >
           {isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
         </IconButton>
@@ -218,14 +271,14 @@ const MealCard = ({ meal, handleDelete }) => {
         </Box>
       </Box>
       {/* Ingredients Section */}
-      <Box sx={{ marginBottom: 2 ,flex: 1}}>
+      <Box sx={{ marginBottom: 2, flex: 1 }}>
         <Typography
           variant="subtitle1"
           sx={{ fontWeight: "bold", marginBottom: 1 }}
         >
           Ingredients
         </Typography>
-        <Box sx={{paddingLeft: 2}}>
+        <Box sx={{ paddingLeft: 2 }}>
           {meal.ingredients.map((ingredient, index) => (
             <Typography key={index} variant="body2">
               {ingredient}
@@ -242,16 +295,25 @@ const MealCard = ({ meal, handleDelete }) => {
           justifyContent: "flex-end",
         }}
       >
+        {/* See Details Button Dialog */}
         <Typography
           variant="body2"
           sx={{ color: "primary.main", cursor: "pointer", fontWeight: "bold" }}
-          onClick={console.log(
-            "See Details Not Implemented"
-          )}
+          onClick={handleDialogOpen}
         >
           See Details
         </Typography>
       </Box>
+      <MealDetailsDialog
+        open={isDialogOpen}
+        onClose={handleDialogClose}
+        meal={meal}
+        onSave={(updatedMeal) => {
+          handleUpdateCardDetails(updatedMeal); // Call parent's update function
+          handleSaveMealToServer(updatedMeal);
+          handleDialogClose(); // Close dialog after saving
+        }}
+      />
     </Paper>
   );
 };
