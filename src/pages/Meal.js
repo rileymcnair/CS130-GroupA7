@@ -17,8 +17,8 @@ function Meal() {
       if (user?.email) {
         //   fetchUserMeals(user.email)
         fetchFavoriteMeals(user.email);
-        fetchNMeals();
-      }
+        fetchNMeals(user.email, 20);
+      } 
     },
     [user]
   );
@@ -52,22 +52,23 @@ function Meal() {
     }
   };
 
-  const fetchNMeals = async () => {
+  const fetchNMeals = async (email, numMeals) => {
     try {
-      const response = await fetch(`/get_n_meals`);
-      console.log(response);
-      if (response.ok) {
-        const data = await response.json();
-        console.log("Other User meals", data);
-        setOtherUserMeals(data);
-        console.log(otherUserMeals);
-      } else {
-        console.error("Failed to fetch n meals");
-      }
+        // Include the numMeals parameter in the request URL
+        const response = await fetch(`/get_n_not_favorited_meals?email=${user.email}&numMeals=${numMeals}`);
+        console.log(response);
+        if (response.ok) {
+            const data = await response.json();
+            console.log("Other User meals", data);
+            setOtherUserMeals(data);
+            console.log(otherUserMeals);
+        } else {
+            console.error("Failed to fetch n meals");
+        }
     } catch (error) {
-      console.error("Error fetching user meals:", error);
+        console.error("Error fetching user meals:", error);
     }
-  };
+};
 
   const handleMealDialogOpen = () => setMealDialogOpen(true);
   const handleMealDialogClose = () => setMealDialogOpen(false);

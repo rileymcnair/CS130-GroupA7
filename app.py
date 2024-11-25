@@ -500,26 +500,48 @@ def generate_meal():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/get_n_meals', methods=['GET'])
-def get_n_meals():
+@app.route('/get_n_not_favorited_meals', methods=['GET'])
+def get_n_not_favorited_meals():
     try:
-        # Fetch the first 3 documents from the 'Meal' collection
-        meals_query = db.collection('Meal').limit(3).get()
+        # Retrieve the numMeals parameter from the query string
+        num_meals = int(request.args.get('numMeals', 10))  # Default to 10 meals if not provided
+        user_email = request.args.get('email')  # Get the user's email from the query string
 
-        # Prepare the meal list with IDs
+        if not user_email:
+            return jsonify({"error": "Email is required"}), 400
+
+        # Fetch the user's data to get the favorited meals
+        user_query = db.collection('users').where('email', '==', user_email).limit(1)
+        user_docs = user_query.get()
+
+        if not user_docs:
+            return jsonify({"error": "User not found"}), 404
+
+        user_data = user_docs[0].to_dict()
+        favorited_meals = set(user_data.get('favorited_meals', []))  # Get the list of favorited meals
+
+        # Fetch meals from the 'Meal' collection
+        meals_query = db.collection('Meal').get()
         meal_list = []
-        for meal in meals_query:
-            # Log each meal's ID and data for debugging
-            print("Meal ID:", meal.id)
-            print("Meal Data:", meal.to_dict())
 
-            # Add the document's data and ID to the response
-            meal_list.append({**meal.to_dict(), 'id': meal.id})
+        # Add only non-favorited meals to the response
+        for meal in meals_query:
+            if meal.id not in favorited_meals:
+                meal_list.append({**meal.to_dict(), 'id': meal.id})
+
+            # Stop when we've collected the desired number of meals
+            if len(meal_list) >= num_meals:
+                break
 
         return jsonify(meal_list), 200
-    
+
+    except ValueError:
+        # Handle invalid numMeals parameter
+        return jsonify({"error": "Invalid number of meals requested"}), 400
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
     
 @app.route('/get_favorite_meals', methods=['GET'])
 def get_favorite_meals():
