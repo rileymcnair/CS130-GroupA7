@@ -13,6 +13,7 @@ import {
   Favorite as FavoriteIcon,
   FavoriteBorder as FavoriteBorderIcon,
 } from "@mui/icons-material";
+import EditIcon from "@mui/icons-material/Edit";
 import { useAuth } from "../../context/AuthContext";
 
 import MacronutrientChart from "./MacronutrientChart";
@@ -52,16 +53,16 @@ const MealCard = ({ meal, handleDelete }) => {
       console.error("Invalid email or meal ID:", user?.email, meal.id);
       return;
     }
-      if (!meal?.id) {
-        console.error("Missing meal ID");
-        return;
-      }
-      console.log("Meal ID:", meal.id);
+    if (!meal?.id) {
+      console.error("Missing meal ID");
+      return;
+    }
+    console.log("Meal ID:", meal.id);
     try {
       const endpoint = isFavorite
         ? "/unfavorite_meal" // Use the remove endpoint if it's already a favorite
         : "/add_meal_to_favorites"; // Use the add endpoint otherwise
-  
+
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -70,7 +71,6 @@ const MealCard = ({ meal, handleDelete }) => {
           email: user.email,
         }),
       });
-      console.log(response)
       if (response.ok) {
         setIsFavorite(!isFavorite); // Toggle the state based on success
       } else {
@@ -87,69 +87,171 @@ const MealCard = ({ meal, handleDelete }) => {
   };
 
   return (
-    <Paper sx={{ marginTop: 4, padding: 2 }}>
-      <Typography variant="h6">Meal Name</Typography>
-      <List>
-        <ListItem
-          secondaryAction={
-            <Box>
-              <IconButton
-                onClick={handleFavoriteToggle}
-                edge="end"
-                color="primary"
-                sx={{ mr: 1 }}
-                // disabled={isFavorite}
-              >
-                {isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-              </IconButton>
-              <IconButton onClick={handleDelete} edge="end" color="error">
-                <DeleteIcon />
-              </IconButton>
-            </Box>
-          }
+    <Paper
+      sx={{
+        marginTop: 4,
+        padding: 3,
+        borderRadius: 2,
+        flexDirection: "column",
+        display: "flex",
+      }}
+    >
+      {/* Header Row */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 1,
+        }}
+      >
+        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+          {meal.name || "Meal Name"}
+        </Typography>
+        <IconButton
+          onClick={handleFavoriteToggle}
+          edge="end"
+          color="primary"
+          sx={{ mr: 1}}
         >
+          {isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+        </IconButton>
+        {/* <IconButton
+          onClick={console.log("should open menu to edit the meal")}
+          color="primary"
+        >
+          <EditIcon />
+        </IconButton> */}
+      </Box>
+
+      {/* Calories */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          flexDirection: "row",
+          marginBlock: 2,
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            flexDirection: "column",
+            flex: 1,
+          }}
+        >
+          <Typography variant="body1" sx={{}}>
+            <strong>Calories</strong>
+          </Typography>
+          <Typography variant="body1" sx={{}}>
+            {meal.calories}
+          </Typography>
+        </Box>
+      </Box>
+      {/* Macros Section */}
+      <Box
+        sx={{
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Box>
+          <Typography variant="body1" sx={{}}>
+            <strong>Macros</strong>
+          </Typography>
+        </Box>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "left",
+            marginBottom: 3,
+          }}
+        >
+          {/* Macronutrient Chart */}
           <Box
             sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "space-between",
-              gap: 2,
-              marginBottom: 2,
-              flexDirection: "row"
+              flex: 0,
+              width: "auto",
+              height: "auto",
             }}
           >
-            {/* Use MacronutrientChart component */}
-            <Box sx={{ flex: 0, marginLeft: 2 }}>
-
             <MacronutrientChart
               proteins={meal.proteins}
               carbs={meal.carbs}
               fats={meal.fats}
               calories={meal.calories}
-              />
-            </Box>
-
-            <Box sx={{ flex: 1, marginLeft: 2 }}>
-              <Typography>
-                <strong>Calories:</strong> {meal.calories}
-              </Typography>
-              <Typography>
-                <strong>Carbs:</strong> {meal.carbs}g
-              </Typography>
-              <Typography>
-                <strong>Fats:</strong> {meal.fats}g
-              </Typography>
-              <Typography>
-                <strong>Proteins:</strong> {meal.proteins}g
-              </Typography>
-              <Typography>
-                <strong>Ingredients:</strong> {meal.ingredients.join(", ")}
-              </Typography>
-            </Box>
+            />
           </Box>
-        </ListItem>
-        <Divider />
-      </List>
+
+          {/* Macro Details */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flex: 1,
+              marginLeft: 3,
+            }}
+          >
+            <Typography sx={{ flex: 1, textAlign: "center" }}>
+              <strong>Protein</strong>
+              <br />
+              {meal.proteins}g
+            </Typography>
+            <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+            <Typography sx={{ flex: 1, textAlign: "center" }}>
+              <strong>Fat</strong>
+              <br />
+              {meal.fats}g
+            </Typography>
+            <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+            <Typography sx={{ flex: 1, textAlign: "center" }}>
+              <strong>Carbs</strong>
+              <br />
+              {meal.carbs}g
+            </Typography>
+          </Box>
+        </Box>
+      </Box>
+      {/* Ingredients Section */}
+      <Box sx={{ marginBottom: 2 ,flex: 1}}>
+        <Typography
+          variant="subtitle1"
+          sx={{ fontWeight: "bold", marginBottom: 1 }}
+        >
+          Ingredients
+        </Typography>
+        <Box sx={{paddingLeft: 2}}>
+          {meal.ingredients.map((ingredient, index) => (
+            <Typography key={index} variant="body2">
+              {ingredient}
+            </Typography>
+          ))}
+        </Box>
+      </Box>
+
+      {/* See Details Section */}
+      <Box
+        sx={{
+          display: "flex",
+          marginTop: "auto",
+          justifyContent: "flex-end",
+        }}
+      >
+        <Typography
+          variant="body2"
+          sx={{ color: "primary.main", cursor: "pointer", fontWeight: "bold" }}
+          onClick={console.log(
+            "See Details Not Implemented"
+          )}
+        >
+          See Details
+        </Typography>
+      </Box>
     </Paper>
   );
 };

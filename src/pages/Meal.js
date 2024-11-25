@@ -149,7 +149,7 @@ function Meal() {
         <Typography variant="h5" mb={2}>
           Your Saved Meals
         </Typography>
-        <Box display="flex" flexWrap="wrap" justifyContent="space-between">
+        <Box display="flex" flexWrap="wrap" gap={2}>
           {favoriteMeals.map((meal) => (
             <MealCard
               key={meal.id}

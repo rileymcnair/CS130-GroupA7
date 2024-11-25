@@ -43,7 +43,7 @@ const MacronutrientChart = ({ proteins, carbs, fats, calories }) => {
         }
       }
     },
-    cutout: "70%", // Creates the doughnut effect
+    cutout: "75%", // Creates the doughnut effect
     responsive: true,
     maintainAspectRatio: false,
     layout: {
@@ -96,7 +96,7 @@ const MacronutrientChart = ({ proteins, carbs, fats, calories }) => {
   };
 
   return (
-    <div style={{ width: "auto", height: "auto" }}>
+    <div style={{ width: "100px", height: "100px" }}>
       <Doughnut data={data} options={options} plugins={[centerTextPlugin]} />
     </div>
   );
