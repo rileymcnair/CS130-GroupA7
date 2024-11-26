@@ -500,6 +500,159 @@ def generate_meal():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/get_n_not_favorited_meals', methods=['GET'])
+def get_n_not_favorited_meals():
+    try:
+        # Retrieve the numMeals parameter from the query string
+        num_meals = int(request.args.get('numMeals', 10))  # Default to 10 meals if not provided
+        user_email = request.args.get('email')  # Get the user's email from the query string
+
+        if not user_email:
+            return jsonify({"error": "Email is required"}), 400
+
+        # Fetch the user's data to get the favorited meals
+        user_query = db.collection('users').where('email', '==', user_email).limit(1)
+        user_docs = user_query.get()
+
+        if not user_docs:
+            return jsonify({"error": "User not found"}), 404
+
+        user_data = user_docs[0].to_dict()
+        favorited_meals = set(user_data.get('favorited_meals', []))  # Get the list of favorited meals
+
+        # Fetch meals from the 'Meal' collection
+        meals_query = db.collection('Meal').get()
+        meal_list = []
+
+        # Add only non-favorited meals to the response
+        for meal in meals_query:
+            if meal.id not in favorited_meals:
+                meal_list.append({**meal.to_dict(), 'id': meal.id})
+
+            # Stop when we've collected the desired number of meals
+            if len(meal_list) >= num_meals:
+                break
+
+        return jsonify(meal_list), 200
+
+    except ValueError:
+        # Handle invalid numMeals parameter
+        return jsonify({"error": "Invalid number of meals requested"}), 400
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+    
+@app.route('/get_favorite_meals', methods=['GET'])
+def get_favorite_meals():
+    # get favorites list from user profile, get the favorited meals
+    # Fetch the first 10 meals
+    email = request.args.get('email')
+    if not email:
+        return jsonify({"error": "Email parameter is required"}), 400
+
+    try:
+        user_query = db.collection('users').where('email', '==', email).limit(1)
+        user_docs = user_query.get()
+
+        if not user_docs:
+            return jsonify({"error": "User not found"}), 404
+
+        user_data = user_docs[0].to_dict()
+        meal_ids = user_data.get('favorited_meals', [])
+
+        if not meal_ids:
+            return jsonify({"message": "No meals found for this user"}), 404
+
+        meal_list = []
+        for meal_id in meal_ids:
+            meal_ref = db.collection('Meal').document(meal_id)
+            meal_doc = meal_ref.get()
+
+            if meal_doc.exists:
+                meal_data = meal_doc.to_dict()
+                meal_data['id'] = meal_id
+                meal_list.append(meal_data)
+            else:
+                print(f"Meal with ID {meal_id} not found")
+
+        if not meal_list:
+            return jsonify({"message": "No valid meals found for this user"}), 404
+
+        return jsonify(meal_list), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/unfavorite_meal', methods=['POST'])
+def unfavorite_meal():
+    data = request.json
+    email = data.get('email')
+    meal_id = data.get('meal_id')  # Use consistent naming as 'add_to_favorites'
+
+    if not email or not meal_id:
+        return jsonify({"error": "Email and Meal ID are required"}), 400
+
+    try:
+        # Find the user by email
+        user_query = db.collection('users').where('email', '==', email).limit(1)
+        user_docs = user_query.get()
+
+        if not user_docs:
+            return jsonify({"error": "User not found"}), 404
+
+        user_ref = user_docs[0].reference
+
+        # Remove the meal ID from the favorited_meals array
+        user_ref.update({
+            'favorited_meals': firestore.ArrayRemove([meal_id])
+        })
+
+        return jsonify({
+            "message": "Meal unfavorited successfully",
+            "meal_id": meal_id
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    
+@app.route('/edit_meal', methods=['POST'])
+def edit_meal():
+    data = request.json
+    email = data.get('email')
+    meal_id = data.get('meal_id')  # Meal ID to identify the meal
+    updated_meal_data = data.get('meal_data')  # Contains updated meal details
+
+    if not email or not meal_id or not updated_meal_data:
+        return jsonify({"error": "Email, Meal ID, and updated meal data are required"}), 400
+
+    try:
+        # Find the user by email
+        user_query = db.collection('users').where('email', '==', email).limit(1)
+        user_docs = user_query.get()
+
+        if not user_docs:
+            return jsonify({"error": "User not found"}), 404
+
+        # Reference to the meal document
+        meal_ref = db.collection('Meal').document(meal_id)
+        meal_doc = meal_ref.get()
+
+        if not meal_doc.exists:
+            return jsonify({"error": "Meal not found"}), 404
+
+        # Update the meal document with the new data
+        meal_ref.update(updated_meal_data)
+
+        return jsonify({
+            "message": "Meal updated successfully",
+            "meal_id": meal_id,
+            "updated_meal_data": updated_meal_data
+        }), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500    
+    
 if __name__ == '__main__':
     print("Flask app is running...")
-    app.run()
+    app.run(debug=True)

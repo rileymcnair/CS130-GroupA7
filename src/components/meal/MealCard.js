@@ -1,11 +1,77 @@
-import React, { useState, useEffect } from 'react';
-import { Typography, Box, List, ListItem, IconButton, Paper, Divider } from '@mui/material';
-import { Delete as DeleteIcon, Favorite as FavoriteIcon, FavoriteBorder as FavoriteBorderIcon } from '@mui/icons-material';
-import { useAuth } from '../../context/AuthContext';
+import React, { useState, useEffect } from "react";
+import {
+  Typography,
+  Box,
+  List,
+  ListItem,
+  IconButton,
+  Paper,
+  Divider,
+} from "@mui/material";
+import {
+  Delete as DeleteIcon,
+  Favorite as FavoriteIcon,
+  FavoriteBorder as FavoriteBorderIcon,
+} from "@mui/icons-material";
+import EditIcon from "@mui/icons-material/Edit";
+import { useAuth } from "../../context/AuthContext";
+import MealDetailsDialog from "./MealDetailsDialog";
+import MacronutrientChart from "./MacronutrientChart";
 
 const MealCard = ({ meal, handleDelete }) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const { user } = useAuth();
+  // See Details Dialog Details
+  const [isDialogOpen, setDialogOpen] = useState(false);
+  const [userMeals, setUserMeals] = useState([]);
+
+  const handleDialogOpen = () => {
+    setDialogOpen(true);
+  };
+  const handleDialogClose = () => {
+    setDialogOpen(false);
+  };
+  const handleUpdateCardDetails = (updatedMeal) => {
+    setUserMeals((prevMeals) =>
+      // prevMeals.map((meal) =>
+      //   meal.id === updatedMeal.id ? updatedMeal : meal // Replace the updated meal
+      // )
+      {meal.name = updatedMeal.name
+      meal.calories = updatedMeal.calories
+      meal.proteins = updatedMeal.proteins}
+    );
+    console.log("Updated meal saved to state:", updatedMeal);
+  };
+  const handleSaveMealToServer = async (updatedMeal) => {
+    try {
+      const response = await fetch("/edit_meal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.email,
+          meal_id: updatedMeal.id,
+          meal_data: {
+            name: updatedMeal.name,
+            calories: updatedMeal.calories,
+            proteins: updatedMeal.proteins,
+            fats: updatedMeal.fats,
+            carbs: updatedMeal.carbs,
+            ingredients: updatedMeal.ingredients,
+          },
+        }),
+      });
+  
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Meal updated successfully:", data);
+      } else {
+        console.error("Failed to update meal:", await response.json());
+      }
+    } catch (error) {
+      console.error("Error updating meal:", error);
+    }
+    handleDialogClose();
+  };
 
   useEffect(() => {
     checkIfFavorite();
@@ -15,12 +81,12 @@ const MealCard = ({ meal, handleDelete }) => {
     if (!user?.email || !meal.id) return;
 
     try {
-      const response = await fetch('/check_is_favorite_meal', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/check_is_favorite_meal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           meal_id: meal.id,
-          email: user.email
+          email: user.email,
         }),
       });
 
@@ -29,78 +95,225 @@ const MealCard = ({ meal, handleDelete }) => {
         setIsFavorite(data.is_favorite);
       }
     } catch (error) {
-      console.error('Error checking favorite status:', error);
+      console.error("Error checking favorite status:", error);
     }
   };
 
   const handleFavoriteToggle = async () => {
     if (!user?.email || !meal.id) {
-        console.error("Invalid email or meal ID:", user?.email, meal.id);
-        return;
+      console.error("Invalid email or meal ID:", user?.email, meal.id);
+      return;
     }
-
+    if (!meal?.id) {
+      console.error("Missing meal ID");
+      return;
+    }
+    console.log("Meal ID:", meal.id);
     try {
-      const response = await fetch('/add_meal_to_favorites', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const endpoint = isFavorite
+        ? "/unfavorite_meal" // Use the remove endpoint if it's already a favorite
+        : "/add_meal_to_favorites"; // Use the add endpoint otherwise
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           meal_id: meal.id,
-          email: user.email
+          email: user.email,
         }),
       });
-
       if (response.ok) {
-        setIsFavorite(true);
+        setIsFavorite(!isFavorite); // Toggle the state based on success
       } else {
-        console.error('Failed to add meal to favorites');
+        console.error(
+          `Failed to ${isFavorite ? "remove" : "add"} meal from favorites`
+        );
       }
     } catch (error) {
-      console.error('Error adding to favorites:', error);
+      console.error(
+        `Error ${isFavorite ? "removing" : "adding"} meal from favorites:`,
+        error
+      );
     }
   };
 
+
   return (
-    <Paper sx={{ marginTop: 4, padding: 2 }}>
-      <Typography variant="h6">Meal Name</Typography>
-      <List>
-        <ListItem
-          secondaryAction={
-            <Box>
-              <IconButton 
-                onClick={handleFavoriteToggle} 
-                edge="end" 
-                color="primary"
-                sx={{ mr: 1 }}
-                disabled={isFavorite}
-              >
-                {isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-              </IconButton>
-              <IconButton onClick={handleDelete} edge="end" color="error">
-                <DeleteIcon />
-              </IconButton>
-            </Box>
-          }
+    <Paper
+      sx={{
+        marginTop: 4,
+        padding: 3,
+        borderRadius: 2,
+        flexDirection: "column",
+        display: "flex",
+        maxWidth: 330,
+      }}
+    >
+      {/* Header Row */}
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          marginBottom: 1,
+        }}
+      >
+        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+          {meal.name || "Meal Name"}
+        </Typography>
+        <IconButton
+          onClick={handleFavoriteToggle}
+          edge="end"
+          color="primary"
+          sx={{ mr: 1 }}
         >
-          <Box sx={{ width: '100%' }}>
-            <Typography>
-              <strong>Calories:</strong> {meal.calories}
+          {isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+        </IconButton>
+        {/* <IconButton
+          onClick={console.log("should open menu to edit the meal")}
+          color="primary"
+        >
+          <EditIcon />
+        </IconButton> */}
+      </Box>
+
+      {/* Calories */}
+      <Box
+        sx={{
+          display: "flex",
+          justifyContent: "center",
+          flexDirection: "row",
+          marginBlock: 2,
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            flexDirection: "column",
+            flex: 1,
+          }}
+        >
+          <Typography variant="body1" sx={{}}>
+            <strong>Calories</strong>
+          </Typography>
+          <Typography variant="body1" sx={{}}>
+            {meal.calories}
+          </Typography>
+        </Box>
+      </Box>
+      {/* Macros Section */}
+      <Box
+        sx={{
+          flexDirection: "column",
+          justifyContent: "center",
+          alignItems: "center",
+        }}
+      >
+        <Box>
+          <Typography variant="body1" sx={{}}>
+            <strong>Macros</strong>
+          </Typography>
+        </Box>
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "left",
+            marginBottom: 3,
+          }}
+        >
+          {/* Macronutrient Chart */}
+          <Box
+            sx={{
+              flex: 0,
+              width: "auto",
+              height: "auto",
+            }}
+          >
+            <MacronutrientChart
+              proteins={meal.proteins}
+              carbs={meal.carbs}
+              fats={meal.fats}
+              calories={meal.calories}
+            />
+          </Box>
+
+          {/* Macro Details */}
+          <Box
+            sx={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              justifyContent: "space-between",
+              flex: 1,
+              marginLeft: 3,
+            }}
+          >
+            <Typography sx={{ flex: 1, textAlign: "center" }}>
+              <strong>Protein</strong>
+              <br />
+              {meal.proteins}g
             </Typography>
-            <Typography>
-              <strong>Carbs:</strong> {meal.carbs}g
+            <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+            <Typography sx={{ flex: 1, textAlign: "center" }}>
+              <strong>Fat</strong>
+              <br />
+              {meal.fats}g
             </Typography>
-            <Typography>
-              <strong>Fats:</strong> {meal.fats}g
-            </Typography>
-            <Typography>
-              <strong>Proteins:</strong> {meal.proteins}g
-            </Typography>
-            <Typography>
-              <strong>Ingredients:</strong> {meal.ingredients.join(', ')}
+            <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+            <Typography sx={{ flex: 1, textAlign: "center" }}>
+              <strong>Carbs</strong>
+              <br />
+              {meal.carbs}g
             </Typography>
           </Box>
-        </ListItem>
-        <Divider />
-      </List>
+        </Box>
+      </Box>
+      {/* Ingredients Section */}
+      <Box sx={{ marginBottom: 2, flex: 1 }}>
+        <Typography
+          variant="subtitle1"
+          sx={{ fontWeight: "bold", marginBottom: 1 }}
+        >
+          Ingredients
+        </Typography>
+        <Box sx={{ paddingLeft: 2 }}>
+          {meal.ingredients.map((ingredient, index) => (
+            <Typography key={index} variant="body2">
+              {ingredient}
+            </Typography>
+          ))}
+        </Box>
+      </Box>
+
+      {/* See Details Section */}
+      <Box
+        sx={{
+          display: "flex",
+          marginTop: "auto",
+          justifyContent: "flex-end",
+        }}
+      >
+        {/* See Details Button Dialog */}
+        <Typography
+          variant="body2"
+          sx={{ color: "primary.main", cursor: "pointer", fontWeight: "bold" }}
+          onClick={handleDialogOpen}
+        >
+          See Details
+        </Typography>
+      </Box>
+      <MealDetailsDialog
+        open={isDialogOpen}
+        onClose={handleDialogClose}
+        meal={meal}
+        onSave={(updatedMeal) => {
+          handleUpdateCardDetails(updatedMeal); // Call parent's update function
+          handleSaveMealToServer(updatedMeal);
+          handleDialogClose(); // Close dialog after saving
+        }}
+      />
     </Paper>
   );
 };
