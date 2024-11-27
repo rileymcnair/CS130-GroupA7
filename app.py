@@ -401,7 +401,7 @@ def create_favorite_workout():
 
         workout_ref = db.collection('Workout').add({
             'exercises': data.get('exercise_ids', []),
-            'is_recurring': data.get('is_recurring', False),
+            'body_part_focus': data.get('body_part_focus', ''),
             'total_minutes': data.get('total_minutes'),
         })
         workout_id = workout_ref[1].id
@@ -598,22 +598,17 @@ def generate_workout():
     try:
         model = genai.GenerativeModel('gemini-pro')
 
-        # Ensure body parts is a comma-separated string
         body_parts = user_input.get('body_parts', '')
-        if isinstance(body_parts, list):
-            body_parts = ', '.join(body_parts)
 
         prompt = f"""
         Create a workout recommendation based on the following criteria:
         - Total time available: {user_input.get('total_minutes', 'any')} minutes
         - Focus on body parts: {body_parts}
         - Desired calories to burn: {user_input.get('avg_calories_burned', 'any')} calories
-        - Is this workout recurring? {user_input.get('is_recurring', 'any')}
 
         Respond with ONLY a JSON object that fits this schema, with no additional text:
         {{
             "name": str,
-            "is_recurring": bool,
             "total_minutes": int,
             "exercises": [
                 {{
@@ -636,12 +631,17 @@ def generate_workout():
         except json.JSONDecodeError:
             return jsonify({"error": "Failed to parse model's response to JSON. Try again to generate a new response."}), 500
 
+        body_parts_list = [exercise.get('body_parts', '') for exercise in workout_data.get('exercises', [])]
+        body_part_focus = ', '.join(sorted(set(', '.join(body_parts_list).split(', '))))
+
         exercise_ids = []
         for exercise in workout_data.get('exercises', []):
             exercise_ref = db.collection('Exercise').add(exercise)
             exercise_ids.append(exercise_ref[1].id)
 
-        workout_data['exercises'] = exercise_ids 
+        workout_data['exercises'] = exercise_ids
+        workout_data['body_part_focus'] = body_part_focus
+
         workout_ref = db.collection('Workout').add(workout_data)
         workout_id = workout_ref[1].id
 
@@ -878,12 +878,12 @@ def create_workout():
     try:
         data = request.json
         exercises = data.get('exercises', [])
-        is_recurring = data.get('is_recurring', False)
+        body_part_focus = data.get('body_part_focus', '')
         total_minutes = data.get('total_minutes')
 
         workout_ref = db.collection('Workout').add({
             'exercises': exercises,
-            'is_recurring': is_recurring,
+            'body_part_focus': body_part_focus,
             'total_minutes': total_minutes,
         })
 
@@ -949,7 +949,7 @@ def create_user_workout():
 
         workout_data = {
             'exercises': data.get('exercises', []),
-            'is_recurring': data.get('is_recurring', False),
+            'body_part_focus': data.get('body_part_focus', ''),
             'total_minutes': data.get('total_minutes', 0),
         }
         workout_ref = db.collection('Workout').add(workout_data)
@@ -997,7 +997,7 @@ def edit_user_workout(workout_id):
         workout_ref.update({
             'name': data.get('name'),
             'total_minutes': data.get('total_minutes'),
-            'is_recurring': data.get('is_recurring'),
+            'body_part_focus': data.get('body_part_focus'),
         })
 
         for index, exercise_id in enumerate(exercise_ids):

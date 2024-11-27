@@ -57,10 +57,10 @@ const WorkoutDetailsDialog = ({
             fullWidth
           />
           <TextField
-            label="Recurring"
-            value={workout.is_recurring ? "Yes" : "No"}
+            label="Focus"
+            value={workout.body_part_focus}
             onChange={(e) =>
-              onWorkoutChange("is_recurring", e.target.value === "Yes")
+              onWorkoutChange("body_part_focus", e.target.value)
             }
             fullWidth
           />

@@ -14,14 +14,14 @@ const WorkoutDialog = ({ open, handleClose, handleGenerateWorkout }) => {
     body_parts: "",
     total_minutes: "",
     avg_calories_burned: "",
-    is_recurring: false,
+    body_part_focus: "",
   });
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setWorkoutInput((prev) => ({
       ...prev,
-      [name]: name === "is_recurring" ? value === "true" : value,
+      [name]: value,
     }));
   };
 
@@ -56,13 +56,6 @@ const WorkoutDialog = ({ open, handleClose, handleGenerateWorkout }) => {
             value={workoutInput.avg_calories_burned}
             onChange={handleInputChange}
             type="number"
-            fullWidth
-          />
-          <TextField
-            label="Recurring (true/false)"
-            name="is_recurring"
-            value={workoutInput.is_recurring ? "true" : "false"}
-            onChange={handleInputChange}
             fullWidth
           />
         </Box>

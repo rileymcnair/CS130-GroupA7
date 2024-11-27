@@ -1,14 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Paper, Typography, Box, Divider, IconButton } from "@mui/material";
 import {
-  Favorite as FavoriteIcon,
-  FavoriteBorder as FavoriteBorderIcon,
-} from "@mui/icons-material";
+  Paper,
+  Typography,
+  Box,
+  Divider,
+  IconButton,
+} from "@mui/material";
+import {
+    Favorite as FavoriteIcon,
+    FavoriteBorder as FavoriteBorderIcon,
+  } from "@mui/icons-material";
 import WorkoutDetailsDialog from "./WorkoutDetailsDialog";
 import { useAuth } from "../../context/AuthContext";
 
 const WorkoutCard = ({ workout, handleUpdate }) => {
-  const [isFavorite, setIsFavorite] = useState(false);
+    const [isFavorite, setIsFavorite] = useState(false);
   const { user } = useAuth();
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [editedWorkout, setEditedWorkout] = useState(workout);
@@ -22,7 +28,6 @@ const WorkoutCard = ({ workout, handleUpdate }) => {
     setDialogOpen(false);
   };
 
-  // Update workout-level fields
   const handleWorkoutChange = (field, value) => {
     setEditedWorkout((prev) => ({
       ...prev,
@@ -30,7 +35,6 @@ const WorkoutCard = ({ workout, handleUpdate }) => {
     }));
   };
 
-  // Update exercise-level fields
   const handleExerciseChange = (index, field, value) => {
     setEditedWorkout((prev) => {
       const updatedExercises = [...prev.exercises];
@@ -39,7 +43,6 @@ const WorkoutCard = ({ workout, handleUpdate }) => {
     });
   };
 
-  // Save changes to the server
   const handleSave = async () => {
     try {
       const response = await fetch(`/edit_user_workout/${workout.id}`, {
@@ -121,16 +124,16 @@ const WorkoutCard = ({ workout, handleUpdate }) => {
         }),
       });
       if (response.ok) {
-        setIsFavorite(!isFavorite); // Toggle the state based on success
+        setIsFavorite(!isFavorite);
       } else {
         console.error(
-          `Failed to ${isFavorite ? "remove" : "add"} workout from favorites`,
+          `Failed to ${isFavorite ? "remove" : "add"} workout from favorites`
         );
       }
     } catch (error) {
       console.error(
         `Error ${isFavorite ? "removing" : "adding"} workout from favorites:`,
-        error,
+        error
       );
     }
   };
@@ -154,7 +157,9 @@ const WorkoutCard = ({ workout, handleUpdate }) => {
           marginBottom: 1,
         }}
       >
-        <Typography variant="h6">{workout.name || "Workout Name"}</Typography>
+        <Typography variant="h6">
+        {workout.name || "Workout Name"}
+        </Typography>
         <IconButton
           onClick={handleFavoriteToggle}
           edge="end"
@@ -166,37 +171,32 @@ const WorkoutCard = ({ workout, handleUpdate }) => {
       </Box>
       <Box
         sx={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          justifyContent: "space-between",
-          flex: 1,
-          marginLeft: 3,
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            flex: 1,
+            marginLeft: 3,
         }}
-      >
+        >
         <Typography sx={{ flex: 1, textAlign: "center" }}>
-          <strong>Calories:</strong>
-          <br />
-          {workout.exercises.reduce(
-            (total, exercise) =>
-              total + parseInt(exercise.avg_calories_burned || 0),
-            0,
-          )}{" "}
-          cal
+            <strong>Calories:</strong>
+            <br />
+            {workout.exercises.reduce((total, exercise) => total + parseInt(exercise.avg_calories_burned || 0), 0)} cal
         </Typography>
         <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
         <Typography sx={{ flex: 1, textAlign: "center" }}>
-          <strong>Time:</strong>
-          <br />
-          {workout.total_minutes} min
+            <strong>Time:</strong>
+            <br />
+            {workout.total_minutes} min
         </Typography>
         <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
         <Typography sx={{ flex: 1, textAlign: "center" }}>
-          <strong>Recurring:</strong>
-          <br />
-          {workout.is_recurring ? "Yes" : "No"}
+            <strong>Target:</strong>
+            <br />
+            {workout.body_part_focus}
         </Typography>
-      </Box>
+    </Box>
       <Typography variant="h6" sx={{ marginTop: 2 }}>
         Exercises
       </Typography>
@@ -215,7 +215,7 @@ const WorkoutCard = ({ workout, handleUpdate }) => {
         </Box>
       ))}
 
-      <Box
+    <Box
         sx={{
           display: "flex",
           marginTop: "auto",
