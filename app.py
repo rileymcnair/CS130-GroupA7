@@ -606,12 +606,15 @@ def generate_workout():
         - Focus on body parts: {body_parts}
         - Desired calories to burn: {user_input.get('avg_calories_burned', 'any')} calories
 
+        Be creative and engaging when naming the workout and exercises. The workout and exercise names should be a short phrase at most 2-3 words. Include around 3-4 exercises max, and the description for each exercise should be 1-2 sentences.
+
         Respond with ONLY a JSON object that fits this schema, with no additional text:
         {{
             "name": str,
             "total_minutes": int,
             "exercises": [
                 {{
+                    "name": str,
                     "avg_calories_burned": int,
                     "body_parts": str,
                     "description": str,
@@ -707,7 +710,6 @@ def get_n_not_favorited_workouts():
 
         user_query = db.collection('users').where('email', '==', user_email).limit(1)
         user_docs = user_query.get()
-
         if not user_docs:
             return jsonify({"error": "User not found"}), 404
 
@@ -719,10 +721,20 @@ def get_n_not_favorited_workouts():
 
         for workout in workouts_query:
             if workout.id not in favorited_workouts:
-                workout_list.append({**workout.to_dict(), 'id': workout.id})
+                workout_data = {**workout.to_dict(), 'id': workout.id}
 
-            if len(workout_list) >= num_workouts:
-                break
+                exercise_details = []
+                for exercise_id in workout_data.get("exercises", []):
+                    exercise_ref = db.collection('Exercise').document(exercise_id)
+                    exercise_doc = exercise_ref.get()
+                    if exercise_doc.exists:
+                        exercise_details.append(exercise_doc.to_dict())
+
+                workout_data["exercises"] = exercise_details
+                workout_list.append(workout_data)
+
+                if len(workout_list) >= num_workouts:
+                    break
 
         return jsonify(workout_list), 200
 
@@ -731,7 +743,6 @@ def get_n_not_favorited_workouts():
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
-
     
 @app.route('/get_favorite_meals', methods=['GET'])
 def get_favorite_meals():
@@ -968,23 +979,8 @@ def create_user_workout():
 @app.route('/edit_user_workout/<workout_id>', methods=['PUT'])
 def edit_user_workout(workout_id):
     data = request.json
-    email = data.get('email')
-
-    if not email:
-        return jsonify({"error": "Email is required"}), 400
 
     try:
-        user_query = db.collection('users').where('email', '==', email).limit(1)
-        user_docs = user_query.get()
-
-        if not user_docs:
-            return jsonify({"error": "User not found"}), 404
-
-        user_data = user_docs[0].to_dict()
-
-        if workout_id not in user_data.get('favorited_workouts', []):
-            return jsonify({"error": "Workout not associated with this user"}), 403
-
         workout_ref = db.collection('Workout').document(workout_id)
         workout_doc = workout_ref.get()
 
@@ -1008,11 +1004,13 @@ def edit_user_workout(workout_id):
             exercise_ref = db.collection('Exercise').document(exercise_id)
 
             exercise_ref.update({
+                'name': exercise_data.get('name'),
                 'reps': exercise_data.get('reps'),
                 'sets': exercise_data.get('sets'),
                 'weight': exercise_data.get('weight'),
                 'avg_calories_burned': exercise_data.get('avg_calories_burned'),
                 'body_parts': exercise_data.get('body_parts'),
+                'description': exercise_data.get('description'),
             })
 
         return jsonify({"message": "Workout and exercises updated successfully"}), 200

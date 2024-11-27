@@ -1,20 +1,14 @@
 import React, { useState, useEffect } from "react";
+import { Paper, Typography, Box, Divider, IconButton } from "@mui/material";
 import {
-  Paper,
-  Typography,
-  Box,
-  Divider,
-  IconButton,
-} from "@mui/material";
-import {
-    Favorite as FavoriteIcon,
-    FavoriteBorder as FavoriteBorderIcon,
-  } from "@mui/icons-material";
+  Favorite as FavoriteIcon,
+  FavoriteBorder as FavoriteBorderIcon,
+} from "@mui/icons-material";
 import WorkoutDetailsDialog from "./WorkoutDetailsDialog";
 import { useAuth } from "../../context/AuthContext";
 
 const WorkoutCard = ({ workout, handleUpdate }) => {
-    const [isFavorite, setIsFavorite] = useState(false);
+  const [isFavorite, setIsFavorite] = useState(false);
   const { user } = useAuth();
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [editedWorkout, setEditedWorkout] = useState(workout);
@@ -32,6 +26,7 @@ const WorkoutCard = ({ workout, handleUpdate }) => {
     setEditedWorkout((prev) => ({
       ...prev,
       [field]: value,
+      exercises: prev.exercises || [],
     }));
   };
 
@@ -109,7 +104,6 @@ const WorkoutCard = ({ workout, handleUpdate }) => {
       console.error("Missing workout ID");
       return;
     }
-    console.log("Workout ID:", workout.id);
     try {
       const endpoint = isFavorite
         ? "/unfavorite_workout"
@@ -127,13 +121,13 @@ const WorkoutCard = ({ workout, handleUpdate }) => {
         setIsFavorite(!isFavorite);
       } else {
         console.error(
-          `Failed to ${isFavorite ? "remove" : "add"} workout from favorites`
+          `Failed to ${isFavorite ? "remove" : "add"} workout from favorites`,
         );
       }
     } catch (error) {
       console.error(
         `Error ${isFavorite ? "removing" : "adding"} workout from favorites:`,
-        error
+        error,
       );
     }
   };
@@ -146,7 +140,8 @@ const WorkoutCard = ({ workout, handleUpdate }) => {
         borderRadius: 2,
         flexDirection: "column",
         display: "flex",
-        maxWidth: 450,
+        maxWidth: 600,
+        minWidth: 400,
       }}
     >
       <Box
@@ -157,9 +152,7 @@ const WorkoutCard = ({ workout, handleUpdate }) => {
           marginBottom: 1,
         }}
       >
-        <Typography variant="h6">
-        {workout.name || "Workout Name"}
-        </Typography>
+        <Typography variant="h6">{workout.name || "Workout Name"}</Typography>
         <IconButton
           onClick={handleFavoriteToggle}
           edge="end"
@@ -171,51 +164,65 @@ const WorkoutCard = ({ workout, handleUpdate }) => {
       </Box>
       <Box
         sx={{
-            display: "flex",
-            flexDirection: "row",
-            alignItems: "center",
-            justifyContent: "space-between",
-            flex: 1,
-            marginLeft: 3,
+          display: "flex",
+          flexDirection: "row",
+          alignItems: "center",
+          justifyContent: "space-between",
+          flex: 1,
+          marginLeft: 3,
         }}
-        >
+      >
         <Typography sx={{ flex: 1, textAlign: "center" }}>
-            <strong>Calories:</strong>
-            <br />
-            {workout.exercises.reduce((total, exercise) => total + parseInt(exercise.avg_calories_burned || 0), 0)} cal
+          <strong>Calories:</strong>
+          <br />
+          {(workout.exercises || []).reduce(
+            (total, exercise) =>
+              total + parseInt(exercise.avg_calories_burned || 0),
+            0,
+          )}{" "}
+          cal
         </Typography>
         <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
         <Typography sx={{ flex: 1, textAlign: "center" }}>
-            <strong>Time:</strong>
-            <br />
-            {workout.total_minutes} min
+          <strong>Time:</strong>
+          <br />
+          {workout.total_minutes} min
         </Typography>
         <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
         <Typography sx={{ flex: 1, textAlign: "center" }}>
-            <strong>Target:</strong>
-            <br />
-            {workout.body_part_focus}
+          <strong>Target:</strong>
+          <br />
+          {workout.body_part_focus}
         </Typography>
-    </Box>
+      </Box>
       <Typography variant="h6" sx={{ marginTop: 2 }}>
         Exercises
       </Typography>
-      {workout.exercises.map((exercise, index) => (
-        <Box key={exercise.id} sx={{ padding: 1, marginBottom: 1 }}>
-          <Typography>
-            <b>{exercise.name}</b>
-          </Typography>
-          <strong>Reps:</strong> {exercise.reps}
-          <br />
-          <strong>Sets:</strong> {exercise.sets}
-          <br />
-          <strong>Weight:</strong> {exercise.weight}
-          <br />
-          <strong>Focus:</strong> {exercise.body_parts}
-        </Box>
-      ))}
-
-    <Box
+      <Box
+        sx={{
+          maxHeight: 200,
+          overflowY: "auto",
+          padding: 1,
+        }}
+      >
+        {workout.exercises.map((exercise, index) => (
+          <Box key={exercise.id} sx={{ padding: 1, marginBottom: 1 }}>
+            <Typography>
+              <b>{exercise.name}</b>
+            </Typography>
+            <strong>Reps:</strong> {exercise.reps}
+            <br />
+            <strong>Sets:</strong> {exercise.sets}
+            <br />
+            <strong>Weight:</strong> {exercise.weight}
+            <br />
+            <strong>Focus:</strong> {exercise.body_parts}
+            <br />
+            <strong>Description:</strong> {exercise.description}
+          </Box>
+        ))}
+      </Box>
+      <Box
         sx={{
           display: "flex",
           marginTop: "auto",

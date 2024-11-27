@@ -59,9 +59,7 @@ const WorkoutDetailsDialog = ({
           <TextField
             label="Focus"
             value={workout.body_part_focus}
-            onChange={(e) =>
-              onWorkoutChange("body_part_focus", e.target.value)
-            }
+            onChange={(e) => onWorkoutChange("body_part_focus", e.target.value)}
             fullWidth
           />
           <Typography variant="h6">Exercises</Typography>
@@ -124,6 +122,14 @@ const WorkoutDetailsDialog = ({
                 value={exercise.body_parts}
                 onChange={(e) =>
                   onExerciseChange(index, "body_parts", e.target.value)
+                }
+                fullWidth
+              />
+              <TextField
+                label="Description"
+                value={exercise.description}
+                onChange={(e) =>
+                  onExerciseChange(index, "description", e.target.value)
                 }
                 fullWidth
               />

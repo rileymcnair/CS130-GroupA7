@@ -52,7 +52,7 @@ function Workout() {
           ...data.workout_data,
           id: data.workout_id,
           email: user?.email,
-          exercises,
+          exercises: exercises || [],
         });
 
         handleWorkoutDialogClose();
