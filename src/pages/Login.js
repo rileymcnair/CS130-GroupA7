@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
-import '../styles/Auth.css';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
+import "../styles/Auth.css";
 
 function Login() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const { login, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/home');
+      navigate("/home");
     }
   }, [isAuthenticated, navigate]);
 
@@ -19,9 +19,9 @@ function Login() {
     e.preventDefault();
     try {
       await login(email, password);
-      navigate('/home');
+      navigate("/home");
     } catch (error) {
-      console.error('Failed to log in', error);
+      console.error("Failed to log in", error);
     }
   };
 
@@ -43,7 +43,9 @@ function Login() {
         />
         <button type="submit">Login</button>
       </form>
-      <p>Don't have an account? <Link to="/register">Register here</Link></p>
+      <p>
+        Don't have an account? <Link to="/register">Register here</Link>
+      </p>
     </div>
   );
 }

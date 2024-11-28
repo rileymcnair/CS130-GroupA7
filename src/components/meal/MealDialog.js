@@ -1,13 +1,20 @@
-import React, { useState } from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, TextField, Button } from '@mui/material';
+import React, { useState } from "react";
+import {
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  TextField,
+  Button,
+} from "@mui/material";
 
 const MealDialog = ({ open, handleClose, handleGenerateMeal }) => {
   const [newMeal, setNewMeal] = useState({
-    type: '',
-    diet: '',
-    calories: '',
-    ingredients: '',
-    time: '',
+    type: "",
+    diet: "",
+    calories: "",
+    ingredients: "",
+    time: "",
   });
 
   const handleInputChange = (e) => {
@@ -23,7 +30,7 @@ const MealDialog = ({ open, handleClose, handleGenerateMeal }) => {
       type: newMeal.type,
       diet: newMeal.diet,
       calories: newMeal.calories,
-      ingredients: newMeal.ingredients.split(',').map((item) => item.trim()),
+      ingredients: newMeal.ingredients.split(",").map((item) => item.trim()),
       time: newMeal.time,
     });
   };

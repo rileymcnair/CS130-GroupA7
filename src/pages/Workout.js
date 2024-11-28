@@ -66,6 +66,30 @@ function Workout() {
     setGeneratedWorkout(updatedWorkout);
   };
 
+  const handleDelete = async (workoutId) => {
+    try {
+      const response = await fetch(`/remove_favorite_workout`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.email,
+          id: workoutId,
+        }),
+      });
+
+      if (response.ok) {
+        setFavoriteWorkouts((prevWorkouts) =>
+          prevWorkouts.filter((workout) => workout.id !== workoutId),
+        );
+        console.log(`Workout ${workoutId} deleted successfully.`);
+      } else {
+        console.error("Failed to delete the workout:", await response.json());
+      }
+    } catch (error) {
+      console.error("Error deleting workout:", error);
+    }
+  };
+
   useEffect(
     (email) => {
       if (user?.email) {
@@ -107,6 +131,20 @@ function Workout() {
       }
     } catch (error) {
       console.error("Error fetching user workouts:", error);
+    }
+  };
+
+  const handleFavoriteToggle = (workout, isNowFavorite) => {
+    if (isNowFavorite) {
+      setFavoriteWorkouts((prevFavorites) => [...prevFavorites, workout]);
+      setOtherUserWorkouts((prevOthers) =>
+        prevOthers.filter((w) => w.id !== workout.id),
+      );
+    } else {
+      setOtherUserWorkouts((prevOthers) => [...prevOthers, workout]);
+      setFavoriteWorkouts((prevFavorites) =>
+        prevFavorites.filter((w) => w.id !== workout.id),
+      );
     }
   };
 
@@ -183,19 +221,25 @@ function Workout() {
         </Paper>
 
         {/* Workouts Grid */}
-        {favoriteWorkouts.length > 0 && (
-          <Box display="flex" flexWrap="wrap" gap={2}>
-            {favoriteWorkouts.map((workout) => (
-              <WorkoutCard
-                key={workout.id}
-                workout={workout}
-                handleDelete={() =>
-                  console.log("Delete function for individual workouts")
-                }
-              />
-            ))}
-          </Box>
-        )}
+        {favoriteWorkouts.map((workout) => (
+          <WorkoutCard
+            key={workout.id}
+            workout={workout}
+            handleUpdate={(updatedWorkout) => {
+              setFavoriteWorkouts((prevWorkouts) =>
+                prevWorkouts.map((w) =>
+                  w.id === updatedWorkout.id ? updatedWorkout : w,
+                ),
+              );
+            }}
+            handleDelete={(workoutId) => {
+              setFavoriteWorkouts((prevWorkouts) =>
+                prevWorkouts.filter((w) => w.id !== workoutId),
+              );
+            }}
+            onFavoriteToggle={handleFavoriteToggle}
+          />
+        ))}
       </Box>
 
       {/* Workouts From Others Section */}
@@ -225,9 +269,10 @@ function Workout() {
                 workout={workout}
                 handleDelete={() =>
                   console.log(
-                    "Delete function for individual workouts, " + workout.id,
+                    "No delete function for individual workouts, " + workout.id,
                   )
                 }
+                onFavoriteToggle={handleFavoriteToggle}
               />
             ))
           ) : (

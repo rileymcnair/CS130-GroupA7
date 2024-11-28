@@ -18,9 +18,9 @@ function Meal() {
         //   fetchUserMeals(user.email)
         fetchFavoriteMeals(user.email);
         fetchNMeals(user.email, 20);
-      } 
+      }
     },
-    [user]
+    [user],
   );
 
   const fetchUserMeals = async (email) => {
@@ -54,21 +54,23 @@ function Meal() {
 
   const fetchNMeals = async (email, numMeals) => {
     try {
-        // Include the numMeals parameter in the request URL
-        const response = await fetch(`/get_n_not_favorited_meals?email=${user.email}&numMeals=${numMeals}`);
-        console.log(response);
-        if (response.ok) {
-            const data = await response.json();
-            console.log("Other User meals", data);
-            setOtherUserMeals(data);
-            console.log(otherUserMeals);
-        } else {
-            console.error("Failed to fetch n meals");
-        }
+      // Include the numMeals parameter in the request URL
+      const response = await fetch(
+        `/get_n_not_favorited_meals?email=${user.email}&numMeals=${numMeals}`,
+      );
+      console.log(response);
+      if (response.ok) {
+        const data = await response.json();
+        console.log("Other User meals", data);
+        setOtherUserMeals(data);
+        console.log(otherUserMeals);
+      } else {
+        console.error("Failed to fetch n meals");
+      }
     } catch (error) {
-        console.error("Error fetching user meals:", error);
+      console.error("Error fetching user meals:", error);
     }
-};
+  };
 
   const handleMealDialogOpen = () => setMealDialogOpen(true);
   const handleMealDialogClose = () => setMealDialogOpen(false);
@@ -122,6 +124,30 @@ function Meal() {
     }
   };
 
+  const handleDelete = async (mealId) => {
+    try {
+      const response = await fetch(`/remove_favorite_meal`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.email,
+          id: mealId,
+        }),
+      });
+
+      if (response.ok) {
+        setFavoriteMeals((prevMeals) =>
+          prevMeals.filter((meal) => meal.id !== mealId),
+        );
+        console.log(`Meal ${mealId} deleted successfully.`);
+      } else {
+        console.error("Failed to delete the meal:", await response.json());
+      }
+    } catch (error) {
+      console.error("Error deleting meal:", error);
+    }
+  };
+
   return (
     <Box>
       {/* AI Generated Meals Section Header */}
@@ -145,29 +171,30 @@ function Meal() {
           >
             {/* Heading */}
             <Box>
-            <Typography variant="h5">AI-Generated Meal Suggestions</Typography>
+              <Typography variant="h5">
+                AI-Generated Meal Suggestions
+              </Typography>
             </Box>
             <Box>
-            <Button variant="contained" onClick={handleMealDialogOpen}>
-              Generate Meal
-            </Button>
+              <Button variant="contained" onClick={handleMealDialogOpen}>
+                Generate Meal
+              </Button>
             </Box>
           </Box>
           {/* Subtext */}
           <Box>
-
-          <Typography
-            variant="body1"
-            sx={{
-              color: "text.secondary",
-              fontStyle: "italic",
-              marginBottom: 0,
-            }}
+            <Typography
+              variant="body1"
+              sx={{
+                color: "text.secondary",
+                fontStyle: "italic",
+                marginBottom: 0,
+              }}
             >
-            Provide your dietary preferences, calorie goals, or ingredients, and
-            let AI create personalized meal ideas just for you.
-          </Typography>
-            </Box>
+              Provide your dietary preferences, calorie goals, or ingredients,
+              and let AI create personalized meal ideas just for you.
+            </Typography>
+          </Box>
         </Box>
       </Paper>
 
@@ -191,41 +218,47 @@ function Meal() {
             padding: 2,
           }}
         >
-              <Typography variant="h5" mb={1}>
-      Your Favorited Meals
-    </Typography>
-    {favoriteMeals.length === 0 && (
-      <Typography
-        variant="body1"
-        sx={{ fontStyle: "italic", color: "text.secondary", mt: 1 }}
-      >
-        Your meal list is looking a bit empty
-      </Typography>
-    )}
-    {favoriteMeals.length > 0 && (
-      <Typography
-        variant="body1"
-        sx={{ fontStyle: "italic", color: "text.secondary", mt: 1 }}
-      >
-        Here are your tracked meals
-      </Typography>
-    )}
-  </Paper>
+          <Typography variant="h5" mb={1}>
+            Your Favorited Meals
+          </Typography>
+          {favoriteMeals.length === 0 && (
+            <Typography
+              variant="body1"
+              sx={{ fontStyle: "italic", color: "text.secondary", mt: 1 }}
+            >
+              Your meal list is looking a bit empty
+            </Typography>
+          )}
+          {favoriteMeals.length > 0 && (
+            <Typography
+              variant="body1"
+              sx={{ fontStyle: "italic", color: "text.secondary", mt: 1 }}
+            >
+              Here are your tracked meals
+            </Typography>
+          )}
+        </Paper>
 
-  {/* Meals Grid */}
-  {favoriteMeals.length > 0 && (
-    <Box display="flex" flexWrap="wrap" gap={2}>
-      {favoriteMeals.map((meal) => (
-        <MealCard
-          key={meal.id}
-          meal={meal}
-          handleDelete={() =>
-            console.log("Delete function for individual meals")
-          }
-        />
-      ))}
-    </Box>
-  )}
+        {/* Meals Grid */}
+        {favoriteMeals.map((meal) => (
+          <MealCard
+            key={meal.id}
+            meal={meal}
+            handleDelete={(mealId) => {
+              setFavoriteMeals((prevMeal) =>
+                prevMeal.filter((w) => w.id !== mealId),
+              );
+            }}
+            handleFavoriteToggleCallback={(meal, isFavorite) => {
+              if (!isFavorite) {
+                setFavoriteMeals((prevMeals) =>
+                  prevMeals.filter((m) => m.id !== meal.id),
+                );
+                setOtherUserMeals((prevMeals) => [...prevMeals, meal]);
+              }
+            }}
+          />
+        ))}
       </Box>
 
       {/* Meals From Others Section */}
@@ -255,9 +288,17 @@ function Meal() {
                 meal={meal}
                 handleDelete={() =>
                   console.log(
-                    "Delete function for individual meals, " + meal.id
+                    "Delete function for individual meals, " + meal.id,
                   )
                 }
+                handleFavoriteToggleCallback={(meal, isFavorite) => {
+                  if (isFavorite) {
+                    setOtherUserMeals((prevMeals) =>
+                      prevMeals.filter((m) => m.id !== meal.id),
+                    );
+                    setFavoriteMeals((prevMeals) => [...prevMeals, meal]);
+                  }
+                }}
               />
             ))
           ) : (

@@ -4,10 +4,16 @@ import {
   Favorite as FavoriteIcon,
   FavoriteBorder as FavoriteBorderIcon,
 } from "@mui/icons-material";
+import DeleteIcon from "@mui/icons-material/Delete";
 import WorkoutDetailsDialog from "./WorkoutDetailsDialog";
 import { useAuth } from "../../context/AuthContext";
 
-const WorkoutCard = ({ workout, handleUpdate }) => {
+const WorkoutCard = ({
+  workout,
+  handleUpdate,
+  handleDelete,
+  onFavoriteToggle,
+}) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const { user } = useAuth();
   const [isDialogOpen, setDialogOpen] = useState(false);
@@ -118,7 +124,12 @@ const WorkoutCard = ({ workout, handleUpdate }) => {
         }),
       });
       if (response.ok) {
-        setIsFavorite(!isFavorite);
+        const updatedFavoriteStatus = !isFavorite;
+        setIsFavorite(updatedFavoriteStatus);
+
+        if (onFavoriteToggle) {
+          onFavoriteToggle(workout, updatedFavoriteStatus);
+        }
       } else {
         console.error(
           `Failed to ${isFavorite ? "remove" : "add"} workout from favorites`,
@@ -129,6 +140,31 @@ const WorkoutCard = ({ workout, handleUpdate }) => {
         `Error ${isFavorite ? "removing" : "adding"} workout from favorites:`,
         error,
       );
+    }
+  };
+
+  const handleRemoveWorkout = async () => {
+    try {
+      const response = await fetch("/remove_favorite_workout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.email,
+          id: workout.id,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error removing workout:", errorData.error);
+        return;
+      }
+
+      const data = await response.json();
+      console.log(data.message);
+      handleDelete(workout.id);
+    } catch (error) {
+      console.error("Failed to remove the workout:", error);
     }
   };
 
@@ -225,16 +261,29 @@ const WorkoutCard = ({ workout, handleUpdate }) => {
       <Box
         sx={{
           display: "flex",
+          justifyContent: "space-between",
+          position: "relative",
           marginTop: "auto",
-          justifyContent: "flex-end",
         }}
       >
+        {isFavorite && (
+          <IconButton
+            onClick={handleRemoveWorkout}
+            color="error"
+            sx={{
+              cursor: "pointer",
+              fontWeight: "bold",
+            }}
+          >
+            <DeleteIcon />
+          </IconButton>
+        )}
         <Typography
           variant="body2"
           sx={{ color: "primary.main", cursor: "pointer", fontWeight: "bold" }}
           onClick={handleDialogOpen}
         >
-          See Details
+          Edit
         </Typography>
       </Box>
       <WorkoutDetailsDialog

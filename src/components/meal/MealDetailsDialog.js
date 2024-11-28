@@ -97,7 +97,7 @@ const MealDetailsDialog = ({ open, onClose, meal, onSave }) => {
             onChange={(e) =>
               handleInputChange(
                 "ingredients",
-                e.target.value.split(",").map((i) => i.trim())
+                e.target.value.split(",").map((i) => i.trim()),
               )
             }
             fullWidth

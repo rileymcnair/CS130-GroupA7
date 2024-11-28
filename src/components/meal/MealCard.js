@@ -2,23 +2,21 @@ import React, { useState, useEffect } from "react";
 import {
   Typography,
   Box,
-  List,
-  ListItem,
+  Button,
   IconButton,
   Paper,
   Divider,
 } from "@mui/material";
 import {
-  Delete as DeleteIcon,
   Favorite as FavoriteIcon,
   FavoriteBorder as FavoriteBorderIcon,
 } from "@mui/icons-material";
-import EditIcon from "@mui/icons-material/Edit";
+import DeleteIcon from "@mui/icons-material/Delete";
 import { useAuth } from "../../context/AuthContext";
 import MealDetailsDialog from "./MealDetailsDialog";
 import MacronutrientChart from "./MacronutrientChart";
 
-const MealCard = ({ meal, handleDelete }) => {
+const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const { user } = useAuth();
   // See Details Dialog Details
@@ -36,9 +34,11 @@ const MealCard = ({ meal, handleDelete }) => {
       // prevMeals.map((meal) =>
       //   meal.id === updatedMeal.id ? updatedMeal : meal // Replace the updated meal
       // )
-      {meal.name = updatedMeal.name
-      meal.calories = updatedMeal.calories
-      meal.proteins = updatedMeal.proteins}
+      {
+        meal.name = updatedMeal.name;
+        meal.calories = updatedMeal.calories;
+        meal.proteins = updatedMeal.proteins;
+      },
     );
     console.log("Updated meal saved to state:", updatedMeal);
   };
@@ -60,7 +60,7 @@ const MealCard = ({ meal, handleDelete }) => {
           },
         }),
       });
-  
+
       if (response.ok) {
         const data = await response.json();
         console.log("Meal updated successfully:", data);
@@ -104,15 +104,10 @@ const MealCard = ({ meal, handleDelete }) => {
       console.error("Invalid email or meal ID:", user?.email, meal.id);
       return;
     }
-    if (!meal?.id) {
-      console.error("Missing meal ID");
-      return;
-    }
-    console.log("Meal ID:", meal.id);
     try {
       const endpoint = isFavorite
-        ? "/unfavorite_meal" // Use the remove endpoint if it's already a favorite
-        : "/add_meal_to_favorites"; // Use the add endpoint otherwise
+        ? "/unfavorite_meal"
+        : "/add_meal_to_favorites";
 
       const response = await fetch(endpoint, {
         method: "POST",
@@ -122,21 +117,52 @@ const MealCard = ({ meal, handleDelete }) => {
           email: user.email,
         }),
       });
+
       if (response.ok) {
-        setIsFavorite(!isFavorite); // Toggle the state based on success
+        const updatedFavoriteStatus = !isFavorite;
+        setIsFavorite(updatedFavoriteStatus);
+
+        // Notify the parent component
+        if (handleFavoriteToggleCallback) {
+          handleFavoriteToggleCallback(meal, updatedFavoriteStatus);
+        }
       } else {
         console.error(
-          `Failed to ${isFavorite ? "remove" : "add"} meal from favorites`
+          `Failed to ${isFavorite ? "remove" : "add"} meal from favorites`,
         );
       }
     } catch (error) {
       console.error(
         `Error ${isFavorite ? "removing" : "adding"} meal from favorites:`,
-        error
+        error,
       );
     }
   };
 
+  const handleRemoveMeal = async () => {
+    try {
+      const response = await fetch("/remove_favorite_meal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          email: user.email,
+          id: meal.id,
+        }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error("Error removing meal:", errorData.error);
+        return;
+      }
+
+      const data = await response.json();
+      console.log(data.message);
+      handleDelete(meal.id);
+    } catch (error) {
+      console.error("Failed to remove the meal:", error);
+    }
+  };
 
   return (
     <Paper
@@ -291,19 +317,39 @@ const MealCard = ({ meal, handleDelete }) => {
       <Box
         sx={{
           display: "flex",
+          justifyContent: "space-between",
+          position: "relative",
           marginTop: "auto",
-          justifyContent: "flex-end",
         }}
       >
-        {/* See Details Button Dialog */}
+        {isFavorite && (
+          <IconButton
+            onClick={handleRemoveMeal}
+            color="error"
+            sx={{
+              cursor: "pointer",
+              fontWeight: "bold",
+            }}
+          >
+            <DeleteIcon />
+          </IconButton>
+        )}
         <Typography
           variant="body2"
-          sx={{ color: "primary.main", cursor: "pointer", fontWeight: "bold" }}
+          sx={{
+            color: "primary.main",
+            cursor: "pointer",
+            fontWeight: "bold",
+            position: "absolute",
+            bottom: 5,
+            right: 16,
+          }}
           onClick={handleDialogOpen}
         >
-          See Details
+          Edit
         </Typography>
       </Box>
+
       <MealDetailsDialog
         open={isDialogOpen}
         onClose={handleDialogClose}
