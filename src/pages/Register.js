@@ -1,17 +1,17 @@
-import React, { useState, useEffect } from 'react';
-import { useAuth } from '../context/AuthContext';
-import { useNavigate, Link } from 'react-router-dom';
-import '../styles/Auth.css';
+import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
+import "../styles/Auth.css";
 
 function Register() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const { register, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate('/home');
+      navigate("/home");
     }
   }, [isAuthenticated, navigate]);
 
@@ -19,9 +19,9 @@ function Register() {
     e.preventDefault();
     try {
       await register(email, password);
-      navigate('/home');
+      navigate("/home");
     } catch (error) {
-      console.error('Failed to register', error);
+      console.error("Failed to register", error);
     }
   };
 
@@ -43,7 +43,9 @@ function Register() {
         />
         <button type="submit">Register</button>
       </form>
-      <p>Already have an account? <Link to="/login">Login here</Link></p>
+      <p>
+        Already have an account? <Link to="/login">Login here</Link>
+      </p>
     </div>
   );
 }

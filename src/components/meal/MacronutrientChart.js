@@ -13,12 +13,12 @@ const MacronutrientChart = ({ proteins, carbs, fats, calories }) => {
     labels: ["Carbs", "Fats", "Proteins"],
     datasets: [
       {
-        data: [ fats, carbs, proteins],
-        backgroundColor: [ "#1abc9c", "#3498db", "#9b59b6"], // Custom colors
-        hoverBackgroundColor: ["#1abc9c", "#3498db","#9b59b6"], // Same colors for hover
-        borderWidth: 2
-      }
-    ]
+        data: [fats, carbs, proteins],
+        backgroundColor: ["#1abc9c", "#3498db", "#9b59b6"], // Custom colors
+        hoverBackgroundColor: ["#1abc9c", "#3498db", "#9b59b6"], // Same colors for hover
+        borderWidth: 2,
+      },
+    ],
   };
 
   // Chart options with custom center text and percentage labels
@@ -29,9 +29,9 @@ const MacronutrientChart = ({ proteins, carbs, fats, calories }) => {
         position: "right",
         labels: {
           font: {
-            size: 14
-          }
-        }
+            size: 14,
+          },
+        },
       },
       tooltip: {
         callbacks: {
@@ -39,15 +39,15 @@ const MacronutrientChart = ({ proteins, carbs, fats, calories }) => {
             const value = tooltipItem.raw;
             const label = tooltipItem.label;
             return `${label}: ${value}g`;
-          }
-        }
-      }
+          },
+        },
+      },
     },
     cutout: "75%", // Creates the doughnut effect
     responsive: true,
     maintainAspectRatio: false,
     layout: {
-      padding: 10
+      padding: 10,
     },
     elements: {
       center: {
@@ -56,13 +56,13 @@ const MacronutrientChart = ({ proteins, carbs, fats, calories }) => {
         fontStyle: "Arial", // Default font
         sidePadding: 20, // Adds padding for text
         minFontSize: 14, // Minimum font size
-        lineHeight: 25 // Text line height
-      }
+        lineHeight: 25, // Text line height
+      },
     },
     animation: {
       animateRotate: true,
-      animateScale: true
-    }
+      animateScale: true,
+    },
   };
 
   // Custom center text plugin
@@ -92,7 +92,7 @@ const MacronutrientChart = ({ proteins, carbs, fats, calories }) => {
       ctx.fillStyle = "gray"; // Gray
       ctx.fillText(subText, centerX, centerY + 15);
       ctx.save();
-    }
+    },
   };
 
   return (

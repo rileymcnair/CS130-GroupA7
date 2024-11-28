@@ -3,7 +3,7 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Landing from './pages/Landing';
 import Login from './pages/Login';
 import Register from './pages/Register';
-import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
 import Profile from './pages/Profile';
 import Workout from './pages/Workout';
 import Meal from './pages/Meal';
@@ -24,7 +24,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardLayout>
-                  <Home />
+                  <Dashboard />
                 </DashboardLayout>
               </ProtectedRoute>
             } 

@@ -9,9 +9,11 @@ from dotenv import load_dotenv
 import json
 import re
 
+from datetime import datetime
+import pytz
+
 app = Flask(__name__)
 CORS(app)  # enable CORS for javascript 
-
 
 # initialize Firebase Admin SDK with service account creds
 try:
@@ -31,6 +33,12 @@ except Exception as e:
 # load API key from .env file
 load_dotenv()
 genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+
+def get_current_date():
+    now = datetime.now(pytz.UTC)  
+    date_str = now.strftime('%Y-%m-%d')
+    day_name = now.strftime('%A')
+    return date_str, day_name
 
 # route to health check
 @app.route('/health', methods=['GET'])
@@ -161,6 +169,13 @@ def remove_favorite_meal():
             'favorited_meals': firestore.ArrayRemove([meal_id])
         })
         
+        day_query = db.collection('Day').where('meals', 'array_contains', meal_id)
+        day_docs = day_query.get()
+        for day_doc in day_docs:
+            day_doc.reference.update({
+                'meals': firestore.ArrayRemove([meal_id])
+            })
+        
         meal_ref = db.collection('Meal').document(meal_id)
         meal_doc = meal_ref.get()
 
@@ -169,7 +184,7 @@ def remove_favorite_meal():
 
         meal_ref.delete()
 
-        return jsonify({"message": "Meal removed from favorites and deleted successfully"}), 200
+        return jsonify({"message": "Meal removed from favorites, associated Day entries updated, and meal deleted successfully"}), 200
     
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -240,6 +255,54 @@ def delete_workout():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/remove_favorite_workout', methods=['POST'])
+def remove_favorite_workout():
+    try:
+        data = request.json
+        email = data.get('email')
+        workout_id = data.get('id')
+        
+        if not email or not workout_id:
+            return jsonify({"error": "Email and Workout ID are required"}), 400
+
+        user_query = db.collection('users').where('email', '==', email).limit(1)
+        user_docs = user_query.get()
+
+        if not user_docs:
+            return jsonify({"error": "User not found"}), 404
+
+        user_ref = user_docs[0].reference
+        user_ref.update({
+            'favorited_workouts': firestore.ArrayRemove([workout_id])
+        })
+
+        day_query = db.collection('Day').where('workouts', 'array_contains', workout_id)
+        day_docs = day_query.get()
+        for day_doc in day_docs:
+            day_doc.reference.update({
+                'workouts': firestore.ArrayRemove([workout_id])
+            })
+
+        workout_ref = db.collection('Workout').document(workout_id)
+        workout_doc = workout_ref.get()
+
+        if not workout_doc.exists:
+            return jsonify({"error": "Workout not found"}), 404
+
+        workout_data = workout_doc.to_dict()
+        exercise_ids = workout_data.get('exercises', [])
+
+        for exercise_id in exercise_ids:
+            exercise_ref = db.collection('Exercise').document(exercise_id)
+            exercise_ref.delete()
+
+        workout_ref.delete()
+
+        return jsonify({"message": "Workout, associated exercises, and Day entries updated successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/create_favorite_meal', methods=['POST'])
 def create_favorite_meal():
     data = request.json
@@ -276,7 +339,7 @@ def create_favorite_meal():
         return jsonify({"error": str(e)}), 500
 
 @app.route('/add_meal_to_favorites', methods=['POST'])
-def add_to_favorites():
+def add_meal_to_favorites():
     data = request.json
     meal_id = data.get('meal_id')
     email = data.get('email')
@@ -297,8 +360,26 @@ def add_to_favorites():
             'favorited_meals': firestore.ArrayUnion([meal_id])
         })
 
+        current_date, day_name = get_current_date()
+
+        day_query = db.collection('Day').where('date', '==', current_date).limit(1)
+        day_docs = day_query.get()
+
+        if day_docs:
+            day_ref = day_docs[0].reference
+            day_ref.update({
+                'meals': firestore.ArrayUnion([meal_id])
+            })
+        else:
+            db.collection('Day').add({
+                'date': current_date,
+                'day': day_name,
+                'meals': [meal_id],
+                'workouts': []
+            })
+
         return jsonify({
-            "message": "Meal added to favorites successfully",
+            "message": "Meal added to favorites and associated with today's entry",
             "meal_id": meal_id
         }), 200
 
@@ -327,8 +408,26 @@ def add_workout_to_favorites():
             'favorited_workouts': firestore.ArrayUnion([workout_id])
         })
 
+        current_date, day_name = get_current_date()
+
+        day_query = db.collection('Day').where('date', '==', current_date).limit(1)
+        day_docs = day_query.get()
+
+        if day_docs:
+            day_ref = day_docs[0].reference
+            day_ref.update({
+                'workouts': firestore.ArrayUnion([workout_id])
+            })
+        else:
+            db.collection('Day').add({
+                'date': current_date,
+                'day': day_name,
+                'meals': [],
+                'workouts': [workout_id]
+            })
+
         return jsonify({
-            "message": "Workout added to favorites successfully",
+            "message": "Workout added to favorites and associated with today's entry",
             "workout_id": workout_id
         }), 200
 
@@ -412,52 +511,6 @@ def create_favorite_workout():
         })
 
         return jsonify({"message": "Workout created successfully", "workout_id": workout_id}), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/get_meal_details', methods=['GET'])
-def get_meal_details():
-    meal_id = request.args.get('mealId')
-    if not meal_id:
-        return jsonify({"error": "mealId parameter is required"}), 400
-
-    try:
-        meal_ref = db.collection('Meal').document(meal_id)
-        meal_doc = meal_ref.get()
-
-        if not meal_doc.exists:
-            return jsonify({"error": "Meal not found"}), 404
-
-        return jsonify(meal_doc.to_dict()), 200
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-@app.route('/get_workout_details', methods=['GET'])
-def get_workout_details():
-    workout_id = request.args.get('workoutId')
-    if not workout_id:
-        return jsonify({"error": "workoutId parameter is required"}), 400
-
-    try:
-        workout_ref = db.collection('Workout').document(workout_id)
-        workout_doc = workout_ref.get()
-
-        if not workout_doc.exists:
-            return jsonify({"error": "Workout not found"}), 404
-
-        workout_data = workout_doc.to_dict()
-
-        exercise_details = []
-        for exercise_id in workout_data.get("exercises", []):
-            exercise_ref = db.collection('Exercise').document(exercise_id)
-            exercise_doc = exercise_ref.get()
-            if exercise_doc.exists:
-                exercise_details.append(exercise_doc.to_dict())
-
-        workout_data["exercises"] = exercise_details
-        return jsonify(workout_data), 200
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -789,13 +842,12 @@ def get_favorite_meals():
 def unfavorite_meal():
     data = request.json
     email = data.get('email')
-    meal_id = data.get('meal_id')  # Use consistent naming as 'add_to_favorites'
+    meal_id = data.get('meal_id')
 
     if not email or not meal_id:
         return jsonify({"error": "Email and Meal ID are required"}), 400
 
     try:
-        # Find the user by email
         user_query = db.collection('users').where('email', '==', email).limit(1)
         user_docs = user_query.get()
 
@@ -804,13 +856,23 @@ def unfavorite_meal():
 
         user_ref = user_docs[0].reference
 
-        # Remove the meal ID from the favorited_meals array
         user_ref.update({
             'favorited_meals': firestore.ArrayRemove([meal_id])
         })
 
+        current_date, _ = get_current_date()
+
+        day_query = db.collection('Day').where('date', '==', current_date).limit(1)
+        day_docs = day_query.get()
+
+        if day_docs:
+            day_ref = day_docs[0].reference
+            day_ref.update({
+                'meals': firestore.ArrayRemove([meal_id])
+            })
+
         return jsonify({
-            "message": "Meal unfavorited successfully",
+            "message": "Meal unfavorited and removed from today's entry successfully",
             "meal_id": meal_id
         }), 200
 
@@ -839,9 +901,20 @@ def unfavorite_workout():
             'favorited_workouts': firestore.ArrayRemove([workout_id])
         })
 
+        current_date, _ = get_current_date()
+
+        day_query = db.collection('Day').where('date', '==', current_date).limit(1)
+        day_docs = day_query.get()
+
+        if day_docs:
+            day_ref = day_docs[0].reference
+            day_ref.update({
+                'workouts': firestore.ArrayRemove([workout_id])
+            })
+
         return jsonify({
-            "message": "Workout unfavorited successfully",
-            "meal_id": workout_id
+            "message": "Workout unfavorited and removed from today's entry successfully",
+            "workout_id": workout_id
         }), 200
 
     except Exception as e:
@@ -1028,6 +1101,133 @@ def get_exercise(exercise_id):
             return jsonify({"error": "Exercise not found"}), 404
 
         return jsonify(exercise_doc.to_dict()), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/get_calendar', methods=['GET'])
+def get_calendar():
+    email = request.args.get('email')
+    if not email:
+        return jsonify({"error": "Email parameter is required"}), 400
+
+    try:
+        calendar_query = db.collection('Calendar').where('belongs_to', '==', email)
+        calendar_docs = calendar_query.get()
+
+        if not calendar_docs:
+            return jsonify({"message": "No calendar entries found for this user"}), 404
+
+        calendar_data = [
+            {**doc.to_dict(), 'id': doc.id} for doc in calendar_docs
+        ]
+
+        return jsonify(calendar_data), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/get_workouts_on_day', methods=['POST'])
+def get_workouts_on_day():
+    try:
+        data = request.get_json()
+        date = data.get('date')
+        if not date:
+            return jsonify({"error": "Date parameter is required"}), 400
+
+        day_docs = db.collection('Day').where('date', '==', date).get()
+        if not day_docs:
+            return jsonify([]), 200
+
+        day_data = day_docs[0].to_dict()
+        workout_ids = day_data.get('workouts', [])
+
+        workouts_with_exercises = []
+        for workout_id in workout_ids:
+            workout_ref = db.collection('Workout').document(workout_id)
+            workout_doc = workout_ref.get()
+
+            if not workout_doc.exists:
+                continue
+
+            workout_data = workout_doc.to_dict()
+
+            exercise_details = []
+            for exercise_id in workout_data.get("exercises", []):
+                exercise_ref = db.collection('Exercise').document(exercise_id)
+                exercise_doc = exercise_ref.get()
+                if exercise_doc.exists:
+                    exercise_details.append({**exercise_doc.to_dict(), 'id': exercise_id})
+
+            workout_data["exercises"] = exercise_details
+            workouts_with_exercises.append({**workout_data, 'id': workout_id})
+
+        return jsonify(workouts_with_exercises), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/get_meals_on_day', methods=['POST'])
+def get_meals_on_day():
+    try:
+        data = request.get_json()
+        date = data.get('date')
+        day_doc = db.collection('Day').where('date', '==', date).get()
+        if not day_doc:
+            return jsonify([]), 200
+
+        day_data = day_doc[0].to_dict()
+        meal_ids = day_data.get('meals', [])
+        meals = [
+            {**db.collection('Meal').document(m_id).get().to_dict(), 'id': m_id}
+            for m_id in meal_ids
+        ]
+        return jsonify(meals), 200
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/get_meal_details', methods=['GET'])
+def get_meal_details():
+    meal_id = request.args.get('mealId')
+    if not meal_id:
+        return jsonify({"error": "mealId parameter is required"}), 400
+
+    try:
+        meal_ref = db.collection('Meal').document(meal_id)
+        meal_doc = meal_ref.get()
+
+        if not meal_doc.exists:
+            return jsonify({"error": "Meal not found"}), 404
+
+        return jsonify(meal_doc.to_dict()), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/get_workout_details', methods=['GET'])
+def get_workout_details():
+    workout_id = request.args.get('workoutId')
+    if not workout_id:
+        return jsonify({"error": "workoutId parameter is required"}), 400
+
+    try:
+        workout_ref = db.collection('Workout').document(workout_id)
+        workout_doc = workout_ref.get()
+
+        if not workout_doc.exists:
+            return jsonify({"error": "Workout not found"}), 404
+
+        workout_data = workout_doc.to_dict()
+
+        exercise_details = []
+        for exercise_id in workout_data.get("exercises", []):
+            exercise_ref = db.collection('Exercise').document(exercise_id)
+            exercise_doc = exercise_ref.get()
+            if exercise_doc.exists:
+                exercise_details.append(exercise_doc.to_dict())
+
+        workout_data["exercises"] = exercise_details
+        return jsonify(workout_data), 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
