@@ -18,6 +18,7 @@ const CompactMealCard = ({ meal }) => {
         marginBottom: 2,
         maxHeight: 200,
         overflowY: "auto",
+        width: "100%",
       }}
     >
       <Typography variant="h6" gutterBottom>

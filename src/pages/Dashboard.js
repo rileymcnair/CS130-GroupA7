@@ -7,6 +7,8 @@ import "react-calendar/dist/Calendar.css";
 import CompactWorkoutCard from "../components/workout/CompactWorkoutCard";
 import CompactMealCard from "../components/meal/CompactMealCard";
 import DailyStatsCard from "../components/dashboard/DailyStatsCard";
+import WorkoutListCard from "../components/workout/WorkoutListCard";
+import MealListCard from "../components/meal/MealListCard";
 import TodayIcon from "@mui/icons-material/Today";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import RestaurantIcon from "@mui/icons-material/Restaurant";
@@ -95,6 +97,7 @@ const Dashboard = () => {
           flexDirection: { xs: "column", md: "row" },
           gap: 3,
           marginBottom: 3,
+          width: "100%",
         }}
       >
         {/* Calendar Section */}
@@ -104,6 +107,8 @@ const Dashboard = () => {
             padding: 2,
             borderRadius: 2,
             minWidth: { xs: "100%", md: "30%" },
+            width: "auto",
+            maxWidth: 400,
           }}
         >
           {/* Calendar Heading */}
@@ -125,6 +130,7 @@ const Dashboard = () => {
           {/* Calendar Element */}
           <Calendar onChange={handleDateChange} value={selectedDate} />
         </Paper>
+        {/* Daily Stats Card */}
         <DailyStatsCard
           meals={meals}
           workouts={workouts}
@@ -133,72 +139,19 @@ const Dashboard = () => {
           date={selectedDate}
         />
 
-        {/* Workouts Section */}
-        <Paper
-          sx={{
-            flex: 2,
-            padding: 2,
-            borderRadius: 2,
-          }}
-        >
-          {/* Card Heading */}
-          <Box
-            sx={{
-              display: "flex",
-              height: "auto",
-              justifyContent: "flex-start",
-              alignItems: "center",
-              gap: 1,
-            }}
-          >
-            <FitnessCenterIcon />
-            <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-              Workouts
-            </Typography>
-          </Box>
-          <Divider sx={{ marginBottom: 1 }} />
-          {/* Card Body */}
-
-          <Box sx={{ maxHeight: 300, overflowY: "auto" }}>
-            {workouts.map((workout) => (
-              <CompactWorkoutCard key={workout.id} workout={workout} />
-            ))}
-          </Box>
-        </Paper>
       </Box>
+      {/* Group Workout and Meals together */}
+      <Box sx={{
+        display: "flex",
+        flexWrap: "wrap",
+        maxHeight: "auto",
+        gap: 2,
+      }}>
+        {/* Workouts Section */}
+      <WorkoutListCard workouts={workouts}/>
 
-      {/* Meals Section */}
-      <Paper
-        sx={{
-          padding: 2,
-          borderRadius: 2,
-          marginBottom: 3,
-        }}
-      >
-        {/* Card Heading */}
-        <Box
-          sx={{
-            display: "flex",
-            height: "auto",
-            justifyContent: "flex-start",
-            alignItems: "center",
-            gap: 1,
-          }}
-        >
-          <RestaurantIcon />
-          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-            Meals
-          </Typography>
-        </Box>
-        <Divider sx={{ marginBottom: 1 }} />
-
-        {/* Card Body */}
-        <Box sx={{ maxHeight: 300, overflowY: "auto" }}>
-          {meals.map((meal) => (
-            <CompactMealCard key={meal.id} meal={meal} />
-          ))}
-        </Box>
-      </Paper>
+      <MealListCard meals={meals}/>
+      </Box>
     </Box>
   );
 };
