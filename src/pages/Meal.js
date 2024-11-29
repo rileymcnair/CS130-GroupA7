@@ -210,32 +210,30 @@ function Meal() {
         handleGenerateMeal={handleGenerateMeal}
       />
       <Container
-          sx={{
-            width: "auto",
-            maxWidth: "100%",
-            overflow: "hidden",
-            overflowX: "auto",
-            padding: 0,
-            paddingTop: 1,
-            paddingBottom:1,
-          }}
-        >
-
-      <Box
         sx={{
-          // width: "100%",
+          width: "auto",
+          maxWidth: "100%",
+          overflow: "hidden",
           overflowX: "auto",
+          padding: 0,
+          paddingTop: 1,
+          paddingBottom: 1,
         }}
       >
-        {generatedMeal && (
-          <MealCard
-            meal={generatedMeal}
-            handleDelete={handleDeleteGeneratedMeal}
-          />
-        )}
-      </Box>
+        <Box
+          sx={{
+            // width: "100%",
+            overflowX: "auto",
+          }}
+        >
+          {generatedMeal && (
+            <MealCard
+              meal={generatedMeal}
+              handleDelete={handleDeleteGeneratedMeal}
+            />
+          )}
+        </Box>
       </Container>
-
 
       {/* Your Saved Meals Section Heading*/}
       <Box mt={4}>
@@ -335,7 +333,7 @@ function Meal() {
             paddingBottom: 1,
           }}
         >
-          <Box display="flex" flexWrap="wrap" gap={2}>
+          <Box display="flex" gap={2}>
             {otherUserMeals.length > 0 ? (
               otherUserMeals.map((meal) => (
                 <MealCard

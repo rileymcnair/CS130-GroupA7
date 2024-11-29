@@ -132,13 +132,13 @@ const WorkoutCard = ({
         }
       } else {
         console.error(
-          `Failed to ${isFavorite ? "remove" : "add"} workout from favorites`,
+          `Failed to ${isFavorite ? "remove" : "add"} workout from favorites`
         );
       }
     } catch (error) {
       console.error(
         `Error ${isFavorite ? "removing" : "adding"} workout from favorites:`,
-        error,
+        error
       );
     }
   };
@@ -215,7 +215,7 @@ const WorkoutCard = ({
           {(workout.exercises || []).reduce(
             (total, exercise) =>
               total + parseInt(exercise.avg_calories_burned || 0),
-            0,
+            0
           )}{" "}
           cal
         </Typography>
@@ -232,33 +232,40 @@ const WorkoutCard = ({
           {workout.body_part_focus}
         </Typography>
       </Box>
-      <Typography variant="h6" sx={{ marginTop: 1 }}>
-        Exercises
-      </Typography>
       <Box
         sx={{
-          maxHeight: 200,
-          overflowY: "auto",
-          padding: 1,
+          marginBottom: "auto",
         }}
       >
-        {workout.exercises.map((exercise, index) => (
-          <Box key={exercise.id} sx={{ padding: 1, marginBottom: 1 }}>
-            <Typography>
-              <b>{exercise.name}</b>
-            </Typography>
-            <strong>Reps:</strong> {exercise.reps}
-            <br />
-            <strong>Sets:</strong> {exercise.sets}
-            <br />
-            <strong>Weight:</strong> {exercise.weight}
-            <br />
-            <strong>Focus:</strong> {exercise.body_parts}
-            <br />
-            <strong>Description:</strong> {exercise.description}
-          </Box>
-        ))}
+        <Typography variant="h6" sx={{ marginTop: 1 }}>
+          Exercises
+        </Typography>
+        <Box
+          sx={{
+            maxHeight: 400,
+            overflowY: "auto",
+            padding: 1,
+          }}
+        >
+          {workout.exercises.map((exercise, index) => (
+            <Box key={exercise.id} sx={{ padding: 1, marginBottom: 1 }}>
+              <Typography>
+                <b>{exercise.name}</b>
+              </Typography>
+              <strong>Reps:</strong> {exercise.reps}
+              <br />
+              <strong>Sets:</strong> {exercise.sets}
+              <br />
+              <strong>Weight:</strong> {exercise.weight}
+              <br />
+              <strong>Focus:</strong> {exercise.body_parts}
+              <br />
+              <strong>Description:</strong> {exercise.description}
+            </Box>
+          ))}
+        </Box>
       </Box>
+
       <Box
         sx={{
           display: "flex",
