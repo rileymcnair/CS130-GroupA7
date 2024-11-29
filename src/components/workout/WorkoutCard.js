@@ -177,7 +177,8 @@ const WorkoutCard = ({
         flexDirection: "column",
         display: "flex",
         maxWidth: 600,
-        minWidth: 400,
+        width: 500,
+        minWidth: 500,
       }}
     >
       <Box
@@ -218,20 +219,20 @@ const WorkoutCard = ({
           )}{" "}
           cal
         </Typography>
-        <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+        <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
         <Typography sx={{ flex: 1, textAlign: "center" }}>
           <strong>Time:</strong>
           <br />
           {workout.total_minutes} min
         </Typography>
-        <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+        <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
         <Typography sx={{ flex: 1, textAlign: "center" }}>
           <strong>Target:</strong>
           <br />
           {workout.body_part_focus}
         </Typography>
       </Box>
-      <Typography variant="h6" sx={{ marginTop: 2 }}>
+      <Typography variant="h6" sx={{ marginTop: 1 }}>
         Exercises
       </Typography>
       <Box

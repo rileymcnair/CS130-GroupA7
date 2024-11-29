@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Typography, Button, Box, Paper } from "@mui/material";
+import { Typography, Button, Box, Paper, Container } from "@mui/material";
 import MealDialog from "../components/meal/MealDialog";
 import MealCard from "../components/meal/MealCard";
 import { useAuth } from "../context/AuthContext";
@@ -20,7 +20,7 @@ function Meal() {
         fetchNMeals(user.email, 20);
       }
     },
-    [user],
+    [user]
   );
 
   const fetchUserMeals = async (email) => {
@@ -56,7 +56,7 @@ function Meal() {
     try {
       // Include the numMeals parameter in the request URL
       const response = await fetch(
-        `/get_n_not_favorited_meals?email=${user.email}&numMeals=${numMeals}`,
+        `/get_n_not_favorited_meals?email=${user.email}&numMeals=${numMeals}`
       );
       console.log(response);
       if (response.ok) {
@@ -137,7 +137,7 @@ function Meal() {
 
       if (response.ok) {
         setFavoriteMeals((prevMeals) =>
-          prevMeals.filter((meal) => meal.id !== mealId),
+          prevMeals.filter((meal) => meal.id !== mealId)
         );
         console.log(`Meal ${mealId} deleted successfully.`);
       } else {
@@ -149,7 +149,13 @@ function Meal() {
   };
 
   return (
-    <Box>
+    <Box
+      sx={
+        {
+          // maxWidth: "100%",
+        }
+      }
+    >
       {/* AI Generated Meals Section Header */}
       <Paper
         sx={{
@@ -203,13 +209,33 @@ function Meal() {
         handleClose={handleMealDialogClose}
         handleGenerateMeal={handleGenerateMeal}
       />
+      <Container
+          sx={{
+            width: "auto",
+            maxWidth: "100%",
+            overflow: "hidden",
+            overflowX: "auto",
+            padding: 0,
+            paddingTop: 1,
+            paddingBottom:1,
+          }}
+        >
 
-      {generatedMeal && (
-        <MealCard
-          meal={generatedMeal}
-          handleDelete={handleDeleteGeneratedMeal}
-        />
-      )}
+      <Box
+        sx={{
+          // width: "100%",
+          overflowX: "auto",
+        }}
+      >
+        {generatedMeal && (
+          <MealCard
+            meal={generatedMeal}
+            handleDelete={handleDeleteGeneratedMeal}
+          />
+        )}
+      </Box>
+      </Container>
+
 
       {/* Your Saved Meals Section Heading*/}
       <Box mt={4}>
@@ -238,27 +264,45 @@ function Meal() {
             </Typography>
           )}
         </Paper>
-
-        {/* Meals Grid */}
-        {favoriteMeals.map((meal) => (
-          <MealCard
-            key={meal.id}
-            meal={meal}
-            handleDelete={(mealId) => {
-              setFavoriteMeals((prevMeal) =>
-                prevMeal.filter((w) => w.id !== mealId),
-              );
+        <Container
+          sx={{
+            width: "auto",
+            maxWidth: "100%",
+            overflow: "hidden",
+            overflowX: "auto",
+            padding: 0,
+            paddingTop: 1,
+            paddingBottom: 1,
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex", // Flexbox for horizontal alignment of children
+              gap: 2, // Spacing between MealCard components
+              minWidth: "fit-content", // Prevent shrinking when there are fewer items
             }}
-            handleFavoriteToggleCallback={(meal, isFavorite) => {
-              if (!isFavorite) {
-                setFavoriteMeals((prevMeals) =>
-                  prevMeals.filter((m) => m.id !== meal.id),
-                );
-                setOtherUserMeals((prevMeals) => [...prevMeals, meal]);
-              }
-            }}
-          />
-        ))}
+          >
+            {favoriteMeals.map((meal) => (
+              <MealCard
+                key={meal.id}
+                meal={meal}
+                handleDelete={(mealId) => {
+                  setFavoriteMeals((prevMeal) =>
+                    prevMeal.filter((w) => w.id !== mealId)
+                  );
+                }}
+                handleFavoriteToggleCallback={(meal, isFavorite) => {
+                  if (!isFavorite) {
+                    setFavoriteMeals((prevMeals) =>
+                      prevMeals.filter((m) => m.id !== meal.id)
+                    );
+                    setOtherUserMeals((prevMeals) => [...prevMeals, meal]);
+                  }
+                }}
+              />
+            ))}
+          </Box>
+        </Container>
       </Box>
 
       {/* Meals From Others Section */}
@@ -280,31 +324,43 @@ function Meal() {
             inspired.
           </Typography>
         </Paper>
-        <Box display="flex" flexWrap="wrap" gap={2}>
-          {otherUserMeals.length > 0 ? (
-            otherUserMeals.map((meal) => (
-              <MealCard
-                key={meal.id}
-                meal={meal}
-                handleDelete={() =>
-                  console.log(
-                    "Delete function for individual meals, " + meal.id,
-                  )
-                }
-                handleFavoriteToggleCallback={(meal, isFavorite) => {
-                  if (isFavorite) {
-                    setOtherUserMeals((prevMeals) =>
-                      prevMeals.filter((m) => m.id !== meal.id),
-                    );
-                    setFavoriteMeals((prevMeals) => [...prevMeals, meal]);
+        <Container
+          sx={{
+            width: "auto",
+            maxWidth: "100%",
+            overflow: "hidden",
+            overflowX: "auto",
+            padding: 0,
+            paddingTop: 1,
+            paddingBottom: 1,
+          }}
+        >
+          <Box display="flex" flexWrap="wrap" gap={2}>
+            {otherUserMeals.length > 0 ? (
+              otherUserMeals.map((meal) => (
+                <MealCard
+                  key={meal.id}
+                  meal={meal}
+                  handleDelete={() =>
+                    console.log(
+                      "Delete function for individual meals, " + meal.id
+                    )
                   }
-                }}
-              />
-            ))
-          ) : (
-            <Typography variant="body1">No saved meals yet.</Typography>
-          )}
-        </Box>
+                  handleFavoriteToggleCallback={(meal, isFavorite) => {
+                    if (isFavorite) {
+                      setOtherUserMeals((prevMeals) =>
+                        prevMeals.filter((m) => m.id !== meal.id)
+                      );
+                      setFavoriteMeals((prevMeals) => [...prevMeals, meal]);
+                    }
+                  }}
+                />
+              ))
+            ) : (
+              <Typography variant="body1">No saved meals yet.</Typography>
+            )}
+          </Box>
+        </Container>
       </Box>
     </Box>
   );

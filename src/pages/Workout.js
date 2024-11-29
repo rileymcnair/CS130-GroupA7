@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Typography, Button, Box, Paper } from "@mui/material";
+import { Typography, Button, Box, Paper, Container } from "@mui/material";
 import WorkoutDialog from "../components/workout/WorkoutDialog";
 import WorkoutCard from "../components/workout/WorkoutCard";
 import { useAuth } from "../context/AuthContext";
@@ -45,7 +45,7 @@ function Workout() {
                 body_parts: "",
               };
             }
-          }),
+          })
         );
 
         setGeneratedWorkout({
@@ -79,7 +79,7 @@ function Workout() {
 
       if (response.ok) {
         setFavoriteWorkouts((prevWorkouts) =>
-          prevWorkouts.filter((workout) => workout.id !== workoutId),
+          prevWorkouts.filter((workout) => workout.id !== workoutId)
         );
         console.log(`Workout ${workoutId} deleted successfully.`);
       } else {
@@ -97,7 +97,7 @@ function Workout() {
         fetchNWorkouts(user.email, 20);
       }
     },
-    [user],
+    [user]
   );
 
   const fetchFavoriteWorkouts = async (email) => {
@@ -118,7 +118,7 @@ function Workout() {
   const fetchNWorkouts = async (email, numWorkouts) => {
     try {
       const response = await fetch(
-        `/get_n_not_favorited_workouts?email=${user.email}&numWorkouts=${numWorkouts}`,
+        `/get_n_not_favorited_workouts?email=${user.email}&numWorkouts=${numWorkouts}`
       );
       console.log(response);
       if (response.ok) {
@@ -138,12 +138,12 @@ function Workout() {
     if (isNowFavorite) {
       setFavoriteWorkouts((prevFavorites) => [...prevFavorites, workout]);
       setOtherUserWorkouts((prevOthers) =>
-        prevOthers.filter((w) => w.id !== workout.id),
+        prevOthers.filter((w) => w.id !== workout.id)
       );
     } else {
       setOtherUserWorkouts((prevOthers) => [...prevOthers, workout]);
       setFavoriteWorkouts((prevFavorites) =>
-        prevFavorites.filter((w) => w.id !== workout.id),
+        prevFavorites.filter((w) => w.id !== workout.id)
       );
     }
   };
@@ -185,13 +185,33 @@ function Workout() {
           handleGenerateWorkout={handleGenerateWorkout}
         />
       )}
+      <Container
+        sx={{
+          width: "auto",
+          maxWidth: "100%",
+          overflow: "hidden",
+          overflowX: "auto",
+          padding: 0,
+          paddingTop: 1,
+          paddingBottom: 1,
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex", // Flexbox for horizontal alignment of children
+            gap: 2, // Spacing between MealCard components
+            minWidth: "fit-content", // Prevent shrinking when there are fewer items
+          }}
+        >
+          {generatedWorkout && (
+            <WorkoutCard
+              workout={generatedWorkout}
+              handleUpdate={handleUpdateGeneratedWorkout}
+            />
+          )}
+        </Box>
+      </Container>
 
-      {generatedWorkout && (
-        <WorkoutCard
-          workout={generatedWorkout}
-          handleUpdate={handleUpdateGeneratedWorkout}
-        />
-      )}
       {/* Your Saved Workouts Section Heading*/}
       <Box mt={4}>
         <Paper
@@ -221,25 +241,45 @@ function Workout() {
         </Paper>
 
         {/* Workouts Grid */}
-        {favoriteWorkouts.map((workout) => (
-          <WorkoutCard
-            key={workout.id}
-            workout={workout}
-            handleUpdate={(updatedWorkout) => {
-              setFavoriteWorkouts((prevWorkouts) =>
-                prevWorkouts.map((w) =>
-                  w.id === updatedWorkout.id ? updatedWorkout : w,
-                ),
-              );
+        <Container
+          sx={{
+            width: "auto",
+            maxWidth: "100%",
+            overflow: "hidden",
+            overflowX: "auto",
+            padding: 0,
+            paddingTop: 1,
+            paddingBottom: 1,
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex", // Flexbox for horizontal alignment of children
+              gap: 2, // Spacing between MealCard components
+              minWidth: "fit-content", // Prevent shrinking when there are fewer items
             }}
-            handleDelete={(workoutId) => {
-              setFavoriteWorkouts((prevWorkouts) =>
-                prevWorkouts.filter((w) => w.id !== workoutId),
-              );
-            }}
-            onFavoriteToggle={handleFavoriteToggle}
-          />
-        ))}
+          >
+            {favoriteWorkouts.map((workout) => (
+              <WorkoutCard
+                key={workout.id}
+                workout={workout}
+                handleUpdate={(updatedWorkout) => {
+                  setFavoriteWorkouts((prevWorkouts) =>
+                    prevWorkouts.map((w) =>
+                      w.id === updatedWorkout.id ? updatedWorkout : w
+                    )
+                  );
+                }}
+                handleDelete={(workoutId) => {
+                  setFavoriteWorkouts((prevWorkouts) =>
+                    prevWorkouts.filter((w) => w.id !== workoutId)
+                  );
+                }}
+                onFavoriteToggle={handleFavoriteToggle}
+              />
+            ))}
+          </Box>
+        </Container>
       </Box>
 
       {/* Workouts From Others Section */}
@@ -261,24 +301,37 @@ function Workout() {
             inspired.
           </Typography>
         </Paper>
-        <Box display="flex" flexWrap="wrap" gap={2}>
-          {otherUserWorkouts.length > 0 ? (
-            otherUserWorkouts.map((workout) => (
-              <WorkoutCard
-                key={workout.id}
-                workout={workout}
-                handleDelete={() =>
-                  console.log(
-                    "No delete function for individual workouts, " + workout.id,
-                  )
-                }
-                onFavoriteToggle={handleFavoriteToggle}
-              />
-            ))
-          ) : (
-            <Typography variant="body1">No saved workouts yet.</Typography>
-          )}
-        </Box>
+        <Container
+          sx={{
+            width: "auto",
+            maxWidth: "100%",
+            overflow: "hidden",
+            overflowX: "auto",
+            padding: 0,
+            paddingTop: 1,
+            paddingBottom: 1,
+          }}
+        >
+          <Box display="flex" gap={2}>
+            {otherUserWorkouts.length > 0 ? (
+              otherUserWorkouts.map((workout) => (
+                <WorkoutCard
+                  key={workout.id}
+                  workout={workout}
+                  handleDelete={() =>
+                    console.log(
+                      "No delete function for individual workouts, " +
+                        workout.id
+                    )
+                  }
+                  onFavoriteToggle={handleFavoriteToggle}
+                />
+              ))
+            ) : (
+              <Typography variant="body1">No saved workouts yet.</Typography>
+            )}
+          </Box>
+        </Container>
       </Box>
     </Box>
   );

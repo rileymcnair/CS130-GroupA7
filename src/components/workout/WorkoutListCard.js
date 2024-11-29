@@ -60,6 +60,7 @@ const WorkoutListCard = ({ workouts }) => {
       <Box
         sx={{
           flex: 1, // Ensures the card body grows to fill available space
+          padding: 1,
           maxHeight: 300,
           overflowY: "auto",
           display: "flex",

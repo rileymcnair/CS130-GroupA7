@@ -165,6 +165,7 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
   };
 
   return (
+    <Box>
     <Paper
       sx={{
         marginTop: 4,
@@ -173,6 +174,10 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
         flexDirection: "column",
         display: "flex",
         maxWidth: 330,
+        height: 450,
+        maxHeight: 500,
+        // overflow: "hidden",
+        // overflowY: "auto",
       }}
     >
       {/* Header Row */}
@@ -297,21 +302,28 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
         </Box>
       </Box>
       {/* Ingredients Section */}
-      <Box sx={{ marginBottom: 2, flex: 1 }}>
-        <Typography
-          variant="subtitle1"
-          sx={{ fontWeight: "bold", marginBottom: 1 }}
-        >
-          Ingredients
-        </Typography>
-        <Box sx={{ paddingLeft: 2 }}>
-          {meal.ingredients.map((ingredient, index) => (
-            <Typography key={index} variant="body2">
-              {ingredient}
-            </Typography>
-          ))}
-        </Box>
-      </Box>
+<Box
+  sx={{
+    marginBottom: 2,
+    flex: 1,
+    overflowY: "auto", // Enable vertical scrolling
+    maxHeight: 200, // Set a fixed height to constrain the content
+  }}
+>
+  <Typography
+    variant="subtitle1"
+    sx={{ fontWeight: "bold", marginBottom: 1 }}
+  >
+    Ingredients
+  </Typography>
+  <Box sx={{ paddingLeft: 2 }}>
+    {meal.ingredients.map((ingredient, index) => (
+      <Typography key={index} variant="body2">
+        {ingredient}
+      </Typography>
+    ))}
+  </Box>
+</Box>
 
       {/* See Details Section */}
       <Box
@@ -348,8 +360,6 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
         >
           Edit
         </Typography>
-      </Box>
-
       <MealDetailsDialog
         open={isDialogOpen}
         onClose={handleDialogClose}
@@ -360,7 +370,10 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
           handleDialogClose(); // Close dialog after saving
         }}
       />
+      </Box>
+
     </Paper>
+    </Box>
   );
 };
 
