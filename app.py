@@ -1166,6 +1166,63 @@ def get_workouts_on_day():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route('/get_weight_on_day', methods=['POST'])
+def get_weight_on_day():
+    try:
+        data = request.get_json()
+        date = data.get('date')
+        if not date:
+            return jsonify({"error": "Date parameter is required"}), 400
+
+        day_docs = db.collection('Day').where('date', '==', date).get()
+        if not day_docs:
+            return jsonify({"message": "No data found for the specified date", "weight": []}), 200
+
+        day_data = day_docs[0].to_dict()
+        weight = day_data.get('weight', None)
+
+        if weight is None:
+            return jsonify({"message": "Weight not found for the specified date", "weight": None}), 200
+
+        return jsonify({"date": date, "weight": weight}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+@app.route('/update_weight_on_day', methods=['POST'])
+def update_weight_on_day():
+    try:
+        data = request.get_json()
+        date = data.get('date')
+        weight = data.get('weight')
+
+        if not date or weight is None:
+            return jsonify({"error": "Date and weight are required"}), 400
+
+        day_query = db.collection('Day').where('date', '==', date).limit(1)
+        day_docs = day_query.get()
+        try:
+            weight = int(weight) 
+        except ValueError:
+            return jsonify({"error": "Weight must be a valid number"}), 400
+
+        if day_docs:
+            day_ref = day_docs[0].reference
+            day_ref.update({"weight": weight})
+            return jsonify({"message": "Weight updated successfully"}), 200
+        else:
+            new_day = {
+                "date": date,
+                "weight": weight,
+                "meals": [],  
+                "workouts": [],
+            }
+            db.collection('Day').add(new_day)
+            return jsonify({"message": "Weight added for new day"}), 201
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route('/get_meals_on_day', methods=['POST'])
 def get_meals_on_day():
     try:

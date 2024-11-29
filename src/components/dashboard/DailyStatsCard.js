@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   Box,
   Typography,
@@ -47,17 +47,76 @@ const StyledLinearProgress = styled(LinearProgress)(({ workoutValue }) => ({
 }));
 
 const DailyStatsCard = ({
-  totalCalories = 1800,
-  totalProtein = 120,
-  totalCarbs = 150,
-  totalFats = 50,
-  workoutCalories = 400,
-  workoutTime = 60,
-  expectedDailyCalories = 2000,
+  meals, // list of all the meals for that day
+  workouts, // list of all the workouts for that day
+  userWeight, // weight may be undefined
+  expectedDailyCalories,
+  date,
 }) => {
   // State to manage weight
   const [weight, setWeight] = useState(null); // Initialize as null (no data)
   const [isEditingWeight, setIsEditingWeight] = useState(false); // Edit mode toggle
+
+  // Set weight based on userWeight prop when component loads
+  useEffect(() => {
+    if (userWeight !== undefined) {
+      setWeight(userWeight);
+    }
+  }, [userWeight]);
+
+  // Calculate Daily Stats
+  const totalCalories = meals.reduce((sum, meal) => sum + meal.calories, 0);
+  const totalProtein = meals.reduce((sum, meal) => sum + meal.proteins, 0);
+  const totalCarbs = meals.reduce((sum, meal) => sum + meal.carbs, 0);
+  const totalFats = meals.reduce((sum, meal) => sum + meal.fats, 0);
+  const totalWorkoutCalories = workouts.reduce(
+    (sum, workout) =>
+      sum +
+      workout.exercises.reduce(
+        (exerciseSum, exercise) => exerciseSum + exercise.avg_calories_burned,
+        0
+      ),
+    0
+  );
+  const totalWorkoutTime = workouts.reduce(
+    (sum, workout) => sum + workout.total_minutes,
+    0
+  );
+
+  const parsedDate = (new Date(date)).toISOString().split("T")[0];
+  const handleSaveWeight = async (weight, parsedDate) => {
+    try {
+      const parsedWeight = parseInt(weight, 10)
+      console.log(parsedWeight)
+      if (isNaN(parsedWeight)) {
+        console.error("Invalid weight value:", weight);
+        return;
+      }
+      const response = await fetch('/update_weight_on_day', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ weight: weight, date: parsedDate }), // Send the weight to the server
+      });
+  
+      if (response.ok) {
+        const result = await response.json();
+        console.log('Weight saved successfully:', result);
+      } else {
+        console.error('Failed to save weight:', response.statusText);
+      }
+    } catch (error) {
+      console.error('Error saving weight:', error);
+    } finally {
+      setIsEditingWeight(false); // Exit edit mode regardless of success or failure
+    }
+  };
+
+  // Log weight changes
+  useEffect(() => {
+    console.log("Weight changed:", weight);
+  }, [weight]);
 
   // Calculate percentage of total calories consumed vs. expected
   const caloriePercentage = Math.min(
@@ -65,7 +124,7 @@ const DailyStatsCard = ({
     100
   );
   const workoutPercentage = Math.min(
-    (workoutCalories / expectedDailyCalories) * 100,
+    (totalWorkoutCalories / expectedDailyCalories) * 100,
     100
   );
 
@@ -80,7 +139,6 @@ const DailyStatsCard = ({
       },
     ],
   };
-
   const macroOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -109,11 +167,6 @@ const DailyStatsCard = ({
     },
   };
 
-  // Save handler
-  const handleSaveWeight = () => {
-    console.log("Weight saved:", weight);
-    setIsEditingWeight(false); // Exit edit mode
-  };
 
   return (
     <Card
@@ -179,10 +232,10 @@ const DailyStatsCard = ({
           Workouts
         </Typography>
         <Typography variant="body1" sx={{ mt: 1 }}>
-          <strong>Total Calories Burned:</strong> {workoutCalories}
+          <strong>Total Calories Burned:</strong> {totalWorkoutCalories}
         </Typography>
         <Typography variant="body1" sx={{ mt: 1 }}>
-          <strong>Total Workout Time:</strong> {workoutTime} min
+          <strong>Total Workout Time:</strong> {totalWorkoutTime} min
         </Typography>
       </Box>
 
@@ -196,8 +249,15 @@ const DailyStatsCard = ({
         </Typography>
         {/* Weight Card Body */}
         {isEditingWeight ? (
-          <Box sx={{ display: "flex", gap: 1, alignItems: "center", justifyContent: "space-between", width: "100%"}}>
-            <Box sx={{width: "20"}}>
+          <Box
+            sx={{
+              display: "flex",
+              gap: 1,
+              alignItems: "center",
+              justifyContent: "space-between",
+              width: "100%",
+            }}
+          >
             <TextField
               label="Enter your weight (lb)"
               type="number"
@@ -205,19 +265,24 @@ const DailyStatsCard = ({
               onChange={(e) => setWeight(e.target.value)}
               size="small"
             />
-            </Box>
             <IconButton
               color="#000000"
-              onClick={handleSaveWeight}
+              onClick={() => handleSaveWeight(weight, parsedDate)}
               title="Save Weight"
             >
-              <SaveAsIcon fontSize="small"/>
+              <SaveAsIcon fontSize="small" />
             </IconButton>
           </Box>
         ) : (
-          <Box sx={{ display: "flex", justifyContent: "space-between", alignItems: "center",}}>
+          <Box
+            sx={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+            }}
+          >
             <Typography variant="body1">
-              {weight ? `${weight} lb` : "No weight data available"}
+              {weight !== null && weight !== undefined && weight.length !== 0? `${weight} lb` : "No weight data available"}
             </Typography>
             <IconButton
               color="#000000"

@@ -1,4 +1,6 @@
 import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+
 import { Box, Paper, Typography, Divider } from "@mui/material";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
@@ -10,9 +12,12 @@ import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import RestaurantIcon from "@mui/icons-material/Restaurant";
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [workouts, setWorkouts] = useState([]);
   const [meals, setMeals] = useState([]);
+  const [weight, setWeight] = useState(undefined);
+  const [avgCalIntake, setCalIntake] = useState(2000);
 
   const fetchWorkoutsForDate = async (date) => {
     try {
@@ -42,6 +47,33 @@ const Dashboard = () => {
     }
   };
 
+  const fetchWeightForDate = async (date) => {
+    try {
+      const response = await fetch("/get_weight_on_day", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ date: date.toISOString().split("T")[0] }),
+      });
+      const data = await response.json();
+      setWeight(data.weight);
+      console.log("fetchWeightForDate");
+    } catch (error) {
+      console.error(error);
+    }
+  }
+
+  const fetchUserAvgCalIntake = async () => {
+    try {
+      const response = await fetch(`/get_profile?email=${user.email}`);
+      if (response.ok) {
+        const data = await response.json();
+        setCalIntake(data.avg_cal_intake);
+      } 
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  }
+
   const handleDateChange = (date) => {
     setSelectedDate(date);
     fetchWorkoutsForDate(date);
@@ -51,10 +83,12 @@ const Dashboard = () => {
   useEffect(() => {
     fetchWorkoutsForDate(selectedDate);
     fetchMealsForDate(selectedDate);
+    fetchUserAvgCalIntake();
+    fetchWeightForDate(selectedDate);
   }, [selectedDate]);
 
   return (
-    <Box sx={{ padding: 2 }}>
+    <Box sx={{ padding: 0 }}>
       <Box
         sx={{
           display: "flex",
@@ -92,12 +126,11 @@ const Dashboard = () => {
           <Calendar onChange={handleDateChange} value={selectedDate} />
         </Paper>
         <DailyStatsCard
-          totalCalories={90}
-          totalProtein={20}
-          totalCarbs={30}
-          totalFats={40}
-          workoutCalories={200}
-          expectedDailyCalories={2000}
+          meals={meals}
+          workouts={workouts}
+          userWeight={weight}
+          expectedDailyCalories={avgCalIntake}
+          date={selectedDate}
         />
 
         {/* Workouts Section */}

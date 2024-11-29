@@ -24,7 +24,7 @@ const CompactMealCard = ({ meal }) => {
         {meal.name || "Meal Name"}
       </Typography>
       <Typography variant="body2">
-        <strong>Protein:</strong> {meal.protein}g
+        <strong>Protein:</strong> {meal.proteins}g
       </Typography>
       <Typography variant="body2">
         <strong>Carbs:</strong> {meal.carbs}g
