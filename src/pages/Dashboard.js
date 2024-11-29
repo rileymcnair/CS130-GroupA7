@@ -26,12 +26,17 @@ const Dashboard = () => {
       const response = await fetch("/get_workouts_on_day", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: date.toISOString().split("T")[0] }),
+        body: JSON.stringify({
+          date: date.toISOString().split("T")[0],
+          email: user.email,
+        }),
       });
       const data = await response.json();
-      setWorkouts(data);
+      console.log("API response for workouts:", data);
+      setWorkouts(Array.isArray(data) ? data : []);
     } catch (error) {
-      console.error(error);
+      console.error("Error fetching workouts:", error);
+      setWorkouts([]);
     }
   };
 
@@ -40,10 +45,14 @@ const Dashboard = () => {
       const response = await fetch("/get_meals_on_day", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: date.toISOString().split("T")[0] }),
+        body: JSON.stringify({
+          date: date.toISOString().split("T")[0],
+          email: user.email,
+        }),
       });
       const data = await response.json();
-      setMeals(data);
+      console.log("API response for meals:", data);
+      setMeals(Array.isArray(data) ? data : []);
     } catch (error) {
       console.error(error);
     }
@@ -54,15 +63,17 @@ const Dashboard = () => {
       const response = await fetch("/get_weight_on_day", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ date: date.toISOString().split("T")[0] }),
+        body: JSON.stringify({
+          date: date.toISOString().split("T")[0],
+          user_id: user.uid,
+        }),
       });
       const data = await response.json();
       setWeight(data.weight);
-      console.log("fetchWeightForDate");
     } catch (error) {
       console.error(error);
     }
-  }
+  };
 
   const fetchUserAvgCalIntake = async () => {
     try {
@@ -70,11 +81,11 @@ const Dashboard = () => {
       if (response.ok) {
         const data = await response.json();
         setCalIntake(data.avg_cal_intake);
-      } 
+      }
     } catch (error) {
       console.error("Error fetching profile:", error);
     }
-  }
+  };
 
   const handleDateChange = (date) => {
     setSelectedDate(date);
@@ -138,19 +149,20 @@ const Dashboard = () => {
           expectedDailyCalories={avgCalIntake}
           date={selectedDate}
         />
-
       </Box>
       {/* Group Workout and Meals together */}
-      <Box sx={{
-        display: "flex",
-        flexWrap: "wrap",
-        maxHeight: "auto",
-        gap: 2,
-      }}>
+      <Box
+        sx={{
+          display: "flex",
+          flexWrap: "wrap",
+          maxHeight: "auto",
+          gap: 2,
+        }}
+      >
         {/* Workouts Section */}
-      <WorkoutListCard workouts={workouts}/>
+        <WorkoutListCard workouts={workouts} />
 
-      <MealListCard meals={meals}/>
+        <MealListCard meals={meals} />
       </Box>
     </Box>
   );

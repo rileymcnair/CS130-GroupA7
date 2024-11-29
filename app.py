@@ -40,6 +40,21 @@ def get_current_date():
     day_name = now.strftime('%A')
     return date_str, day_name
 
+db = firestore.client()
+
+def get_user_doc_id_by_email(email):
+    try:
+        user_query = db.collection('users').where('email', '==', email).get()
+
+        if not user_query:
+            return None 
+
+        user_doc = user_query[0]
+        return user_doc.id
+    except Exception as e:
+        print(f"Error fetching user document ID: {str(e)}")
+        return None
+
 # route to health check
 @app.route('/health', methods=['GET'])
 def health_check():
@@ -612,6 +627,7 @@ def generate_meal():
 
         Respond with ONLY a JSON object that fits this schema, with no additional text:
         {{
+            "name": str,
             "calories": int,
             "carbs": int,
             "fats": int,
@@ -1130,15 +1146,50 @@ def get_calendar():
 def get_workouts_on_day():
     try:
         data = request.get_json()
-        date = data.get('date')
-        if not date:
-            return jsonify({"error": "Date parameter is required"}), 400
+        email = data.get('email')  # Email sent by the client
+        date = data.get('date')  # Date in YYYY-MM-DD format
 
+        if not email or not date:
+            return jsonify({"error": "Email and Date are required"}), 400
+
+        # Get the user document ID by email
+        user_id = get_user_doc_id_by_email(email)
+        if not user_id:
+            return jsonify({"error": "User not found"}), 404
+
+        # Fetch the Day entry by the given date
         day_docs = db.collection('Day').where('date', '==', date).get()
         if not day_docs:
             return jsonify([]), 200
 
-        day_data = day_docs[0].to_dict()
+        day_doc = day_docs[0]
+        day_data = day_doc.to_dict()
+        day_id = day_doc.id
+
+        # Use the `day` field directly to determine the relevant day_id field (e.g., "monday_id")
+        day_of_week = day_data.get('day', '').lower() + '_id'  # e.g., "monday_id"
+
+        # Validate Week contains the Day ID
+        week_docs = db.collection('Week').where(f'days.{day_of_week}', '==', day_id).get()
+        if not week_docs:
+            return jsonify({"error": "No Week entry contains the specified Day"}), 404
+
+        week_doc = week_docs[0]
+        week_id = week_doc.id
+
+        # Validate Calendar contains the Week ID
+        calendar_docs = db.collection('Calendar').where('weeks', 'array_contains', week_id).get()
+        if not calendar_docs:
+            return jsonify({"error": "No Calendar entry contains the specified Week"}), 404
+
+        calendar_doc = calendar_docs[0]
+        calendar_data = calendar_doc.to_dict()
+
+        # Validate Calendar belongs to the user
+        if calendar_data.get('belongs_to') != user_id:
+            return jsonify({"error": "The specified Calendar does not belong to the user"}), 403
+
+        # Fetch workouts for the Day
         workout_ids = day_data.get('workouts', [])
 
         workouts_with_exercises = []
@@ -1150,7 +1201,6 @@ def get_workouts_on_day():
                 continue
 
             workout_data = workout_doc.to_dict()
-
             exercise_details = []
             for exercise_id in workout_data.get("exercises", []):
                 exercise_ref = db.collection('Exercise').document(exercise_id)
@@ -1227,18 +1277,67 @@ def update_weight_on_day():
 def get_meals_on_day():
     try:
         data = request.get_json()
-        date = data.get('date')
-        day_doc = db.collection('Day').where('date', '==', date).get()
-        if not day_doc:
+        email = data.get('email')  # Email sent by the client
+        date = data.get('date')  # Date in YYYY-MM-DD format
+
+        if not email or not date:
+            return jsonify({"error": "Email and Date are required"}), 400
+
+        # Get the user document ID by email
+        user_id = get_user_doc_id_by_email(email)
+        if not user_id:
+            return jsonify({"error": "User not found"}), 404
+
+        # Fetch the Day entry by the given date
+        day_docs = db.collection('Day').where('date', '==', date).get()
+        if not day_docs:
             return jsonify([]), 200
 
-        day_data = day_doc[0].to_dict()
+        day_doc = day_docs[0]
+        day_data = day_doc.to_dict()
+        day_id = day_doc.id
+
+        # Use the `day` field directly to determine the relevant day_id field (e.g., "monday_id")
+        day_of_week = day_data.get('day', '').lower() + '_id'  # e.g., "monday_id"
+
+        # Validate Week contains the Day ID
+        week_docs = db.collection('Week').get()
+
+        # Filter the documents to find the one where days[day_of_week] == day_id
+        matching_week_doc = None
+        for doc in week_docs:
+            week_data = doc.to_dict()
+            if week_data.get('days', {}).get(day_of_week) == day_id:
+                matching_week_doc = doc
+                break
+
+        if not matching_week_doc:
+            return jsonify({"error": "No Week entry contains the specified Day"}), 404
+
+        week_id = matching_week_doc.id
+
+        # Validate Calendar contains the Week ID
+        calendar_docs = db.collection('Calendar').where('weeks', 'array_contains', week_id).get()
+        if not calendar_docs:
+            return jsonify({"error": "No Calendar entry contains the specified Week"}), 404
+
+        calendar_doc = calendar_docs[0]
+        calendar_data = calendar_doc.to_dict()
+
+        # Validate Calendar belongs to the user
+        if calendar_data.get('belongs_to') != user_id:
+            return jsonify({"error": "The specified Calendar does not belong to the user"}), 403
+        # Fetch meals for the Day
         meal_ids = day_data.get('meals', [])
-        meals = [
-            {**db.collection('Meal').document(m_id).get().to_dict(), 'id': m_id}
-            for m_id in meal_ids
-        ]
-        return jsonify(meals), 200
+        meals_with_details = []
+        for meal_id in meal_ids:
+            meal_ref = db.collection('Meal').document(meal_id)
+            meal_doc = meal_ref.get()
+            if meal_doc.exists:
+                meals_with_details.append({**meal_doc.to_dict(), 'id': meal_id})
+
+        return jsonify(meals_with_details), 200
+
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 

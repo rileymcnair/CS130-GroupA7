@@ -66,22 +66,39 @@ const DailyStatsCard = ({
   }, [userWeight]);
 
   // Calculate Daily Stats
-  const totalCalories = meals.reduce((sum, meal) => sum + meal.calories, 0);
-  const totalProtein = meals.reduce((sum, meal) => sum + meal.proteins, 0);
-  const totalCarbs = meals.reduce((sum, meal) => sum + meal.carbs, 0);
-  const totalFats = meals.reduce((sum, meal) => sum + meal.fats, 0);
-  const totalWorkoutCalories = workouts.reduce(
+  const totalCalories = (Array.isArray(meals) ? meals : []).reduce(
+    (acc, meal) => acc + (meal.calories || 0),
+    0,
+  );
+  const totalProtein = (Array.isArray(meals) ? meals : []).reduce(
+    (sum, meal) => sum + (meal.proteins || 0),
+    0,
+  );
+  const totalCarbs = (Array.isArray(meals) ? meals : []).reduce(
+    (sum, meal) => sum + (meal.carbs || 0),
+    0,
+  );
+  const totalFats = (Array.isArray(meals) ? meals : []).reduce(
+    (sum, meal) => sum + (meal.fats || 0),
+    0,
+  );
+
+  const totalWorkoutCalories = (Array.isArray(workouts) ? workouts : []).reduce(
     (sum, workout) =>
       sum +
-      workout.exercises.reduce(
-        (exerciseSum, exercise) => exerciseSum + exercise.avg_calories_burned,
-        0
-      ),
-    0
+      (Array.isArray(workout.exercises)
+        ? workout.exercises.reduce(
+            (exerciseSum, exercise) =>
+              exerciseSum + (exercise.avg_calories_burned || 0),
+            0,
+          )
+        : 0),
+    0,
   );
-  const totalWorkoutTime = workouts.reduce(
-    (sum, workout) => sum + workout.total_minutes,
-    0
+
+  const totalWorkoutTime = (Array.isArray(workouts) ? workouts : []).reduce(
+    (sum, workout) => sum + (workout.total_minutes || 0),
+    0,
   );
 
   const parsedDate = new Date(date).toISOString().split("T")[0];
@@ -116,11 +133,11 @@ const DailyStatsCard = ({
   // Calculate percentage of total calories consumed vs. expected
   const caloriePercentage = Math.min(
     (totalCalories / expectedDailyCalories) * 100,
-    100
+    100,
   );
   const workoutPercentage = Math.min(
     (totalWorkoutCalories / expectedDailyCalories) * 100,
-    100
+    100,
   );
 
   // Bar graph data
@@ -212,17 +229,16 @@ const DailyStatsCard = ({
               maxWidth: 300,
             }}
           >
-
             {/* Total Nutrition */}
             <Box sx={{ marginBottom: 0 }}>
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                 Nutrition
               </Typography>
-      <Divider sx={{ marginBottom: 0 }} />
+              <Divider sx={{ marginBottom: 0 }} />
 
-            <Box sx={{ height: 150, mt: 3 }}>
-              <Bar data={macroData} options={macroOptions} />
-            </Box>
+              <Box sx={{ height: 150, mt: 3 }}>
+                <Bar data={macroData} options={macroOptions} />
+              </Box>
               <Box
                 sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}
               >
@@ -260,7 +276,7 @@ const DailyStatsCard = ({
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                 Workouts
               </Typography>
-      <Divider sx={{ marginBottom: 2 }} />
+              <Divider sx={{ marginBottom: 2 }} />
 
               <Typography variant="body1" sx={{ mt: 1 }}>
                 <strong>Total Calories Burned:</strong> {totalWorkoutCalories}
@@ -276,7 +292,7 @@ const DailyStatsCard = ({
               <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
                 Weight
               </Typography>
-      <Divider sx={{ marginBottom: 2 }} />
+              <Divider sx={{ marginBottom: 2 }} />
 
               {/* Weight Card Body */}
               {isEditingWeight ? (
@@ -347,7 +363,7 @@ const DailyStatsCard = ({
             <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
               Expected Daily Calories
             </Typography>
-      <Divider sx={{ marginBottom: 0 }} />
+            <Divider sx={{ marginBottom: 0 }} />
 
             <Typography variant="body1" sx={{ mt: 1, marginBottom: 1 }}>
               {totalCalories} / {expectedDailyCalories} kcal
