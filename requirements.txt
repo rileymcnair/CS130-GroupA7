@@ -3,3 +3,4 @@ firebase-admin==6.5.0
 flask-cors
 python-dotenv
 google-generativeai
+pytz
