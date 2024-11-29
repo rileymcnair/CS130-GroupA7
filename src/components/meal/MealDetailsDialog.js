@@ -11,6 +11,8 @@ import {
   IconButton,
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
+import AddIcon from "@mui/icons-material/Add";
+import DeleteIcon from "@mui/icons-material/Delete";
 
 const MealDetailsDialog = ({ open, onClose, meal, onSave }) => {
   const [editedMeal, setEditedMeal] = useState(meal); // Track the meal's editable state
@@ -19,6 +21,31 @@ const MealDetailsDialog = ({ open, onClose, meal, onSave }) => {
     setEditedMeal((prev) => ({
       ...prev,
       [field]: value,
+    }));
+  };
+
+  const handleIngredientChange = (index, value) => {
+    const updatedIngredients = [...editedMeal.ingredients];
+    updatedIngredients[index] = value;
+    setEditedMeal((prev) => ({
+      ...prev,
+      ingredients: updatedIngredients,
+    }));
+  };
+
+  const handleAddIngredient = () => {
+    setEditedMeal((prev) => ({
+      ...prev,
+      ingredients: [...prev.ingredients, ""], // Add a new empty ingredient field
+    }));
+  };
+
+  const handleRemoveIngredient = (index) => {
+    const updatedIngredients = [...editedMeal.ingredients];
+    updatedIngredients.splice(index, 1); // Remove the ingredient at the specified index
+    setEditedMeal((prev) => ({
+      ...prev,
+      ingredients: updatedIngredients,
     }));
   };
 
@@ -91,17 +118,40 @@ const MealDetailsDialog = ({ open, onClose, meal, onSave }) => {
           </Box>
 
           {/* Ingredients */}
-          <TextField
-            label="Ingredients (comma-separated)"
-            value={editedMeal.ingredients.join(", ")}
-            onChange={(e) =>
-              handleInputChange(
-                "ingredients",
-                e.target.value.split(",").map((i) => i.trim()),
-              )
-            }
-            fullWidth
-          />
+          <Box>
+            <Typography variant="subtitle1" gutterBottom>
+              Ingredients
+            </Typography>
+            {editedMeal.ingredients.map((ingredient, index) => (
+              <Box
+                key={index}
+                sx={{ display: "flex", alignItems: "center", gap: 1, mb: 1 }}
+              >
+                <TextField
+                  label={`Ingredient ${index + 1}`}
+                  value={ingredient}
+                  onChange={(e) =>
+                    handleIngredientChange(index, e.target.value)
+                  }
+                  fullWidth
+                />
+                <IconButton
+                  onClick={() => handleRemoveIngredient(index)}
+                  color="error"
+                  title="Remove Ingredient"
+                >
+                  <DeleteIcon />
+                </IconButton>
+              </Box>
+            ))}
+            <Button
+              onClick={handleAddIngredient}
+              variant="outlined"
+              startIcon={<AddIcon />}
+            >
+              Add Ingredient
+            </Button>
+          </Box>
         </Box>
       </DialogContent>
 
