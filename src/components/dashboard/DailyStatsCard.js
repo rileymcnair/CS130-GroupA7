@@ -203,8 +203,8 @@ const DailyStatsCard = ({
         <Paper
           sx={{
             padding: 2,
-            flex: "1 1 calc(50% - 16px)", // Fill half the width minus the gap
-      boxSizing: "border-box", // Ensure padding is included in width
+            flex: "1", // Fill half the width minus the gap
+            minWidth: "300",
           }}
         >
           <Box
@@ -251,8 +251,8 @@ const DailyStatsCard = ({
         <Paper
           sx={{
             padding: 2,
-            flex: "1 1 calc(50% - 16px)", // Fill half the width minus the gap
-            boxSizing: "border-box", // Ensure padding is included in width
+            flex: "1", // Fill half the width minus the gap
+            minWidth: "200",
           }}
         >
           <Box>
@@ -335,7 +335,9 @@ const DailyStatsCard = ({
         {/* Expected Daily Calories */}
         <Paper
           sx={{
+            flex: "2",
             padding: 2,
+            minWidth: 400,
             width: "100%", // Make it fill the container
             maxWidth: "100%", // Ensure it doesn’t exceed the container's width
             boxSizing: "border-box", // Include padding in width calculations

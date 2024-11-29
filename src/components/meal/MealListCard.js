@@ -1,9 +1,16 @@
 import React from "react";
-import { Box, Typography, Paper, Divider } from "@mui/material";
+import { Box, Typography, Paper, Divider, IconButton } from "@mui/material";
 import RestaurantIcon from "@mui/icons-material/Restaurant";
 import CompactMealCard from "./CompactMealCard"; // Make sure this is correctly imported
+import AddIcon from "@mui/icons-material/Add";
+import { useNavigate } from "react-router-dom";
 
 const MealListCard = ({ meals }) => {
+  const navigate = useNavigate();
+
+  const handleNavigate = () => {
+    navigate("/meals"); // Replace with your target route
+  };
   return (
     <Paper
       sx={{
@@ -29,6 +36,23 @@ const MealListCard = ({ meals }) => {
         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
           Meals
         </Typography>
+        <Box
+          sx={{
+            marginLeft: "auto",
+          }}
+        >
+          <IconButton
+            onClick={handleNavigate}
+            sx={{
+              //   backgroundColor: "#f0f0f0", // Optional: Add background styling
+              "&:hover": {
+                backgroundColor: "#e0e0e0", // Hover effect
+              },
+            }}
+          >
+            <AddIcon fontSize="small" />
+          </IconButton>
+        </Box>
       </Box>
       <Divider sx={{ marginBottom: 1 }} />
 

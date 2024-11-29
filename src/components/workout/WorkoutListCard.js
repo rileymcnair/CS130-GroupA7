@@ -1,9 +1,16 @@
 import React from "react";
-import { Box, Typography, Paper, Divider } from "@mui/material";
+import { Box, Typography, Paper, Divider, IconButton } from "@mui/material";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import CompactWorkoutCard from "./CompactWorkoutCard";
+import AddIcon from "@mui/icons-material/Add";
+import { useNavigate } from "react-router-dom";
 
 const WorkoutListCard = ({ workouts }) => {
+  const navigate = useNavigate();
+
+  const handleNavigate = () => {
+    navigate("/workouts"); // Replace with your target route
+  };
   return (
     <Paper
       sx={{
@@ -29,6 +36,23 @@ const WorkoutListCard = ({ workouts }) => {
         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
           Workouts
         </Typography>
+        <Box
+          sx={{
+            marginLeft: "auto",
+          }}
+        >
+          <IconButton
+            onClick={handleNavigate}
+            sx={{
+              //   backgroundColor: "#f0f0f0", // Optional: Add background styling
+              "&:hover": {
+                backgroundColor: "#e0e0e0", // Hover effect
+              },
+            }}
+          >
+            <AddIcon fontSize="small" />
+          </IconButton>
+        </Box>
       </Box>
       <Divider sx={{ marginBottom: 1 }} />
 
