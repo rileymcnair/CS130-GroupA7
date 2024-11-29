@@ -1,9 +1,13 @@
 import React, { useState, useEffect } from "react";
-import { Box, Paper, Typography } from "@mui/material";
+import { Box, Paper, Typography, Divider } from "@mui/material";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import CompactWorkoutCard from "../components/workout/CompactWorkoutCard";
 import CompactMealCard from "../components/meal/CompactMealCard";
+import DailyStatsCard from "../components/dashboard/DailyStatsCard";
+import TodayIcon from "@mui/icons-material/Today";
+import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
+import RestaurantIcon from "@mui/icons-material/Restaurant";
 
 const Dashboard = () => {
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -50,7 +54,7 @@ const Dashboard = () => {
   }, [selectedDate]);
 
   return (
-    <Box sx={{ padding: 3 }}>
+    <Box sx={{ padding: 2 }}>
       <Box
         sx={{
           display: "flex",
@@ -63,25 +67,65 @@ const Dashboard = () => {
         <Paper
           sx={{
             flex: 1,
-            padding: 3,
+            padding: 2,
             borderRadius: 2,
             minWidth: { xs: "100%", md: "30%" },
           }}
         >
+          {/* Calendar Heading */}
+          <Box
+            sx={{
+              display: "flex",
+              height: "auto",
+              justifyContent: "flex-start",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <TodayIcon />
+            <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+              {selectedDate.toDateString()}
+            </Typography>
+          </Box>
+          <Divider sx={{ marginBottom: 1 }} />
+          {/* Calendar Element */}
           <Calendar onChange={handleDateChange} value={selectedDate} />
         </Paper>
+        <DailyStatsCard
+          totalCalories={90}
+          totalProtein={20}
+          totalCarbs={30}
+          totalFats={40}
+          workoutCalories={200}
+          expectedDailyCalories={2000}
+        />
 
         {/* Workouts Section */}
         <Paper
           sx={{
             flex: 2,
-            padding: 3,
+            padding: 2,
             borderRadius: 2,
           }}
         >
-          <Typography variant="h5">
-            Workouts for {selectedDate.toDateString()}
-          </Typography>
+          {/* Card Heading */}
+          <Box
+            sx={{
+              display: "flex",
+              height: "auto",
+              justifyContent: "flex-start",
+              alignItems: "center",
+              gap: 1,
+            }}
+          >
+            <FitnessCenterIcon />
+            <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+              Workouts
+            </Typography>
+          </Box>
+          <Divider sx={{ marginBottom: 1 }} />
+          {/* Card Body */}
+
           <Box sx={{ maxHeight: 300, overflowY: "auto" }}>
             {workouts.map((workout) => (
               <CompactWorkoutCard key={workout.id} workout={workout} />
@@ -93,12 +137,29 @@ const Dashboard = () => {
       {/* Meals Section */}
       <Paper
         sx={{
-          padding: 3,
+          padding: 2,
           borderRadius: 2,
           marginBottom: 3,
         }}
       >
-        <Typography variant="h5">Meals</Typography>
+        {/* Card Heading */}
+        <Box
+          sx={{
+            display: "flex",
+            height: "auto",
+            justifyContent: "flex-start",
+            alignItems: "center",
+            gap: 1,
+          }}
+        >
+          <RestaurantIcon />
+          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+            Meals
+          </Typography>
+        </Box>
+        <Divider sx={{ marginBottom: 1 }} />
+
+        {/* Card Body */}
         <Box sx={{ maxHeight: 300, overflowY: "auto" }}>
           {meals.map((meal) => (
             <CompactMealCard key={meal.id} meal={meal} />
