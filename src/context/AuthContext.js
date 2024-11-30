@@ -1,8 +1,14 @@
-
 // AuthContext.js
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { auth } from '../firebaseConfig';
-import { signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, onAuthStateChanged } from 'firebase/auth';
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged, 
+  GoogleAuthProvider, 
+  signInWithPopup 
+} from 'firebase/auth';
 
 const AuthContext = createContext();
 
@@ -31,9 +37,16 @@ export function AuthProvider({ children }) {
     return signOut(auth);
   };
 
+  const googleProvider = new GoogleAuthProvider();
+
+  const loginWithGoogle = () => {
+    return signInWithPopup(auth, googleProvider);
+  };
+
   const value = {
     user,
     login,
+    loginWithGoogle, // Added for Google Sign-In
     register,
     logout,
     isAuthenticated: !!user

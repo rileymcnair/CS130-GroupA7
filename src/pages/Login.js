@@ -6,7 +6,7 @@ import "../styles/Auth.css";
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const { login, isAuthenticated } = useAuth();
+  const { login, loginWithGoogle, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -22,6 +22,15 @@ function Login() {
       navigate("/home");
     } catch (error) {
       console.error("Failed to log in", error);
+    }
+  };
+
+  const handleGoogleLogin = async () => {
+    try {
+      await loginWithGoogle();
+      navigate("/home");
+    } catch (error) {
+      console.error("Failed to log in with Google", error);
     }
   };
 
@@ -43,6 +52,10 @@ function Login() {
         />
         <button type="submit">Login</button>
       </form>
+      <button onClick={handleGoogleLogin} className="google-login-button">
+        <img src="https://lh3.googleusercontent.com/COxitqgJr1sJnIDe8-jiKhxDx1FrYbtRHKJ9z_hELisAlapwE9LUPh6fcXIfb5vwpbMl4xl9H9TRFPc5NOO8Sb3VSgIBrfRYvW6cUA" alt="Google icon" className="google-icon" />
+        Sign in with Google
+      </button>
       <p>
         Don't have an account? <Link to="/register">Register here</Link>
       </p>
