@@ -34,15 +34,14 @@ Using Github Actions for both CI and CD
 - test results
 
 
-## deployFirebaseFunctions.yml & deployFirebaseHosting.yml
+## deployFirebaseHosting.yml
 ### triggers
 - workflow runs on push to the deployment branch. 
 - devs should only merge to deployment branch from main only
     - since main is tested, the code that gets deployed should work.
 ### actions
 - installing the respective required dependencies
-- deploying frontend to Firebase Hosting
-- deploying backend to Firebase Functions
+- deploy to Firebase 
 
 ## outputs
 - build logs
