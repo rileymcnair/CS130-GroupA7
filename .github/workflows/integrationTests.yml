@@ -1,0 +1,51 @@
+name: Integration Tests
+
+on:
+  push:
+    branches:
+      - main1
+  pull_request:
+    branches:
+      - main1
+  workflow_run:
+    workflows: ["Frontend Unit Tests", "Backend Unit Tests"]
+    types:
+      - completed
+
+jobs:
+  integration-test:
+    name: Run Integration Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9
+
+      - name: Install Backend Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Download React Build Artifacts
+        uses: actions/download-artifact@v3
+        with:
+          name: react-build
+
+      - name: Serve React App
+        run: npx serve -s build &
+      
+      - name: Start Backend Server
+        run: flask run &
+        env:
+          FLASK_APP: app.py
+
+      - name: Run Integration Tests
+        run: npm run test:e2e
