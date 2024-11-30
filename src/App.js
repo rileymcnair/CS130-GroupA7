@@ -10,6 +10,9 @@ import Meal from './pages/Meal';
 import DashboardLayout from './components/DashboardLayout';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
+import Logout from "./pages/Logout";
+
+
 
 function App() {
   return (
@@ -58,6 +61,10 @@ function App() {
                 </DashboardLayout>
               </ProtectedRoute>
             } 
+          />
+          <Route 
+          path="/logout" 
+          element={<Logout />} 
           />
         </Routes>
       </Router>
