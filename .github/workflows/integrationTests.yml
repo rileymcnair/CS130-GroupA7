@@ -34,18 +34,26 @@ jobs:
       - name: Install Backend Dependencies
         run: pip install -r requirements.txt
 
-      - name: Download React Build Artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: react-build
+      # - name: Download React Build Artifacts
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: react-build
+      - name: Build React App
+        run: npm run build
 
       - name: Serve React App
         run: npx serve -s build &
-      
+        env:
+          PORT: 5001 # Ensure this doesn't conflict with Flask's port
+
       - name: Start Backend Server
         run: flask run &
         env:
           FLASK_APP: app.py
+          FLASK_RUN_PORT: 5000 # Ensure Flask is running on a known port
+
+      - name: Install Playwright
+        run: npx playwright install
 
       - name: Run Integration Tests
-        run: npm run test:e2e
+        run: npx playwright test
