@@ -1,0 +1,29 @@
+name: Backend Unit Tests
+
+on:
+  push:
+    branches:
+      - main1
+  pull_request:
+    branches:
+      - main1
+
+jobs:
+  test-backend:
+    name: Test Flask Backend
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: 3.9
+
+      - name: Install Python Dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run Flask Unit Tests
+        run: pytest tests/test_endpoints.py
