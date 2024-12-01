@@ -186,7 +186,7 @@ const DailyStatsCard = ({
         boxShadow: 2,
         padding: 2,
         width: "auto",
-        minHeight: 500,
+        minHeight: 250,
       }}
     >
       {/* Card Title */}

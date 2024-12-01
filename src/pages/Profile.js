@@ -31,6 +31,7 @@ function Profile() {
   const [workoutDialogOpen, setWorkoutDialogOpen] = useState(false);
 
   const [newMeal, setNewMeal] = useState({
+    name: "",
     calories: "",
     carbs: "",
     fats: "",
@@ -40,13 +41,18 @@ function Profile() {
   });
 
   const [newWorkout, setNewWorkout] = useState({
+    name: "",
     total_minutes: "",
-    is_recurring: false,
+    body_part_focus: "",
     exercises: [
       {
         description: "",
         avg_calories_burned: "",
         body_parts: "",
+        name: "",
+        reps: "",
+        sets: "",
+        weight: "",
       },
     ],
   });
@@ -80,6 +86,7 @@ function Profile() {
   const handleMealDialogClose = () => {
     setMealDialogOpen(false);
     setNewMeal({
+      name: "",
       calories: "",
       carbs: "",
       fats: "",
@@ -93,13 +100,18 @@ function Profile() {
   const handleWorkoutDialogClose = () => {
     setWorkoutDialogOpen(false);
     setNewWorkout({
+      name: "",
       total_minutes: "",
-      is_recurring: false,
+      body_part_focus: "",
       exercises: [
         {
           description: "",
           avg_calories_burned: "",
           body_parts: "",
+          name: "",
+          reps: "",
+          sets: "",
+          weight: "",
         },
       ],
     });
@@ -123,6 +135,10 @@ function Profile() {
           description: "",
           avg_calories_burned: "",
           body_parts: "",
+          name: "",
+          reps: "",
+          sets: "",
+          weight: "",
         },
       ],
     }));
@@ -132,6 +148,7 @@ function Profile() {
   const handleMealSubmit = async () => {
     const mealData = {
       email: user.email,
+      name: newMeal.name,
       calories: Number(newMeal.calories),
       carbs: Number(newMeal.carbs),
       fats: Number(newMeal.fats),
@@ -163,7 +180,8 @@ function Profile() {
   const handleWorkoutSubmit = async () => {
     const workoutData = {
       email: user.email,
-      is_recurring: newWorkout.is_recurring,
+      name: newWorkout.name,
+      body_part_focus: newWorkout.body_part_focus,
       total_minutes: Number(newWorkout.total_minutes),
       exercises: newWorkout.exercises,
     };
@@ -292,14 +310,11 @@ function Profile() {
 
   return (
     <div>
-      <Container>
+      <Box sx={{ padding: 0 }}>
         <Box sx={{ display: "flex", gap: 3, marginTop: 4 }}>
           <Box sx={{ minWidth: 400 }}>
             <Card>
               <CardContent>
-                <Typography variant="h5" component="div" gutterBottom>
-                  Profile
-                </Typography>
                 {isEditing ? (
                   <ProfileForm
                     profileData={profileData}
@@ -316,7 +331,7 @@ function Profile() {
             </Card>
           </Box>
 
-          <Box sx={{ minWidth: 400 }}>
+          <Box sx={{ maxWidth: 500 }}>
             <Card>
               <CardContent>
                 <FavoriteMeals
@@ -329,7 +344,7 @@ function Profile() {
             </Card>
           </Box>
 
-          <Box sx={{ minWidth: 400 }}>
+          <Box sx={{ maxWidth: 500 }}>
             <Card>
               <CardContent>
                 <FavoriteWorkouts
@@ -360,7 +375,7 @@ function Profile() {
           handleAddExercise={handleAddExercise}
           handleSubmit={handleWorkoutSubmit}
         />
-      </Container>
+      </Box>
     </div>
   );
 }

@@ -326,6 +326,7 @@ def create_favorite_meal():
 
     try:
         meal_ref = db.collection('Meal').add({
+            'name': data.get('name'),
             'calories': data.get('calories'),
             'carbs': data.get('carbs'),
             'fats': data.get('fats'),
@@ -347,6 +348,24 @@ def create_favorite_meal():
         user_ref.update({
             'favorited_meals': firestore.ArrayUnion([meal_id])
         })
+
+        current_date, day_name = get_current_date()
+
+        day_query = db.collection('Day').where('date', '==', current_date).limit(1)
+        day_docs = day_query.get()
+
+        if day_docs:
+            day_ref = day_docs[0].reference
+            day_ref.update({
+                'meals': firestore.ArrayUnion([meal_id])
+            })
+        else:
+            db.collection('Day').add({
+                'date': current_date,
+                'day': day_name,
+                'meals': [meal_id],
+                'workouts': []
+            })
 
         return jsonify({"message": "Meal created and added to favorites", "meal_id": meal_id}), 200
 
@@ -513,17 +532,41 @@ def create_favorite_workout():
         if not user_docs:
             return jsonify({"error": "User with specified email not found"}), 404
 
+        user_ref = user_docs[0].reference
+
+        exercise_ids = []
+        for exercise in data.get('exercises', []):
+            exercise_ref = db.collection('Exercise').add(exercise)
+            exercise_ids.append(exercise_ref[1].id)
+
         workout_ref = db.collection('Workout').add({
-            'exercises': data.get('exercise_ids', []),
+            'name': data.get('name', ''),
+            'exercises': exercise_ids, 
             'body_part_focus': data.get('body_part_focus', ''),
             'total_minutes': data.get('total_minutes'),
         })
         workout_id = workout_ref[1].id
 
-        user_ref = user_docs[0].reference
         user_ref.update({
-            'workouts': firestore.ArrayUnion([workout_id])
+            'favorited_workouts': firestore.ArrayUnion([workout_id])
         })
+
+        current_date, day_name = get_current_date()
+        day_query = db.collection('Day').where('date', '==', current_date).limit(1)
+        day_docs = day_query.get()
+
+        if day_docs:
+            day_ref = day_docs[0].reference
+            day_ref.update({
+                'workouts': firestore.ArrayUnion([workout_id])
+            })
+        else:
+            db.collection('Day').add({
+                'date': current_date,
+                'day': day_name,
+                'meals': [],
+                'workouts': [workout_id]
+            })
 
         return jsonify({"message": "Workout created successfully", "workout_id": workout_id}), 200
 
