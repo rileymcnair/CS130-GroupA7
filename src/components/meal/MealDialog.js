@@ -7,8 +7,11 @@ import {
   TextField,
   Button,
 } from "@mui/material";
+import DatePicker from "react-multi-date-picker";
 
 const MealDialog = ({ open, handleClose, handleGenerateMeal }) => {
+  const [selectedDates, setSelectedDates] = useState([]);
+
   const [newMeal, setNewMeal] = useState({
     type: "",
     diet: "",
@@ -26,12 +29,17 @@ const MealDialog = ({ open, handleClose, handleGenerateMeal }) => {
   };
 
   const handleSubmit = () => {
+    const dates = selectedDates.map((dateObj) => ({
+      date: `${dateObj.year}-${dateObj.month.number}-${dateObj.day}`,
+      day: dateObj.weekDay.name,
+    }));
     handleGenerateMeal({
       type: newMeal.type,
       diet: newMeal.diet,
       calories: newMeal.calories,
       ingredients: newMeal.ingredients.split(",").map((item) => item.trim()),
       time: newMeal.time,
+      dates: dates,
     });
   };
 
@@ -78,6 +86,13 @@ const MealDialog = ({ open, handleClose, handleGenerateMeal }) => {
           onChange={handleInputChange}
           fullWidth
           margin="normal"
+        />
+        <label>Dates</label>
+        <DatePicker
+          style={{ width: "100%" }}
+          multiple
+          value={selectedDates}
+          onChange={setSelectedDates}
         />
       </DialogContent>
       <DialogActions>
