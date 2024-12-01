@@ -147,17 +147,11 @@ def get_historical_data():
         if calendar_ref:
             calendar_docs = calendar_ref.get()
             for calendar in calendar_docs:
-                weeks_ids = calendar.to_dict()["weeks"]
-                for week_id in weeks_ids:
-                    week_ref = db.collection('Week').document(week_id)
-                    week_doc = week_ref.get()
-                    week_dict = week_doc.to_dict()
-                    if "days" in week_dict:
-                        for day_id in week_dict["days"].values():
-                            if day_id:
-                                day_ref = db.collection("Day").document(day_id)
-                                day_values = day_ref.get().to_dict()
-                                res.append(day_values)
+                day_ids = calendar.to_dict()["days"]
+                for day_id in day_ids:
+                    day_ref = db.collection('Day').document(day_id)
+                    day_values = day_ref.get().to_dict()
+                    res.append(day_values)
         return jsonify(res), 200
 
     except Exception as e:
@@ -1209,21 +1203,13 @@ def get_workouts_on_day():
         day_data = day_doc.to_dict()
         day_id = day_doc.id
 
-        # Use the `day` field directly to determine the relevant day_id field (e.g., "monday_id")
-        day_of_week = day_data.get('day', '').lower() + '_id'  # e.g., "monday_id"
-
-        # Validate Week contains the Day ID
-        week_docs = db.collection('Week').where(f'days.{day_of_week}', '==', day_id).get()
-        if not week_docs:
-            return jsonify({"error": "No Week entry contains the specified Day"}), 404
-
-        week_doc = week_docs[0]
-        week_id = week_doc.id
-
-        # Validate Calendar contains the Week ID
-        calendar_docs = db.collection('Calendar').where('weeks', 'array_contains', week_id).get()
-        if not calendar_docs:
-            return jsonify({"error": "No Calendar entry contains the specified Week"}), 404
+        # Validate Calendar contains the Day ID
+        calendar_docs = db.collection('Calendar').where('belongs_to', '==', user_id).get()
+        # Assume the user has only one calendar
+        calendar_doc = calendar_docs[0]
+        
+        if day_id not in calendar_doc.to_dict()["days"]:
+            return jsonify({"error": "No Calendar entry contains the specified Day"}), 404
 
         calendar_doc = calendar_docs[0]
         calendar_data = calendar_doc.to_dict()
@@ -1340,29 +1326,13 @@ def get_meals_on_day():
         day_data = day_doc.to_dict()
         day_id = day_doc.id
 
-        # Use the `day` field directly to determine the relevant day_id field (e.g., "monday_id")
-        day_of_week = day_data.get('day', '').lower() + '_id'  # e.g., "monday_id"
-
-        # Validate Week contains the Day ID
-        week_docs = db.collection('Week').get()
-
-        # Filter the documents to find the one where days[day_of_week] == day_id
-        matching_week_doc = None
-        for doc in week_docs:
-            week_data = doc.to_dict()
-            if week_data.get('days', {}).get(day_of_week) == day_id:
-                matching_week_doc = doc
-                break
-
-        if not matching_week_doc:
-            return jsonify({"error": "No Week entry contains the specified Day"}), 404
-
-        week_id = matching_week_doc.id
-
-        # Validate Calendar contains the Week ID
-        calendar_docs = db.collection('Calendar').where('weeks', 'array_contains', week_id).get()
-        if not calendar_docs:
-            return jsonify({"error": "No Calendar entry contains the specified Week"}), 404
+        # Validate Calendar contains the Day ID
+        calendar_docs = db.collection('Calendar').where('belongs_to', '==', user_id).get()
+        # Assume the user has only one calendar
+        calendar_doc = calendar_docs[0]
+        
+        if day_id not in calendar_doc.to_dict()["days"]:
+            return jsonify({"error": "No Calendar entry contains the specified Day"}), 404
 
         calendar_doc = calendar_docs[0]
         calendar_data = calendar_doc.to_dict()
