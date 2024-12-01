@@ -132,13 +132,13 @@ const WorkoutCard = ({
         }
       } else {
         console.error(
-          `Failed to ${isFavorite ? "remove" : "add"} workout from favorites`,
+          `Failed to ${isFavorite ? "remove" : "add"} workout from favorites`
         );
       }
     } catch (error) {
       console.error(
         `Error ${isFavorite ? "removing" : "adding"} workout from favorites:`,
-        error,
+        error
       );
     }
   };
@@ -177,7 +177,8 @@ const WorkoutCard = ({
         flexDirection: "column",
         display: "flex",
         maxWidth: 600,
-        minWidth: 400,
+        width: 500,
+        minWidth: 500,
       }}
     >
       <Box
@@ -214,50 +215,57 @@ const WorkoutCard = ({
           {(workout.exercises || []).reduce(
             (total, exercise) =>
               total + parseInt(exercise.avg_calories_burned || 0),
-            0,
+            0
           )}{" "}
           cal
         </Typography>
-        <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+        <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
         <Typography sx={{ flex: 1, textAlign: "center" }}>
           <strong>Time:</strong>
           <br />
           {workout.total_minutes} min
         </Typography>
-        <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+        <Divider orientation="vertical" flexItem sx={{ mx: 1 }} />
         <Typography sx={{ flex: 1, textAlign: "center" }}>
           <strong>Target:</strong>
           <br />
           {workout.body_part_focus}
         </Typography>
       </Box>
-      <Typography variant="h6" sx={{ marginTop: 2 }}>
-        Exercises
-      </Typography>
       <Box
         sx={{
-          maxHeight: 200,
-          overflowY: "auto",
-          padding: 1,
+          marginBottom: "auto",
         }}
       >
-        {workout.exercises.map((exercise, index) => (
-          <Box key={exercise.id} sx={{ padding: 1, marginBottom: 1 }}>
-            <Typography>
-              <b>{exercise.name}</b>
-            </Typography>
-            <strong>Reps:</strong> {exercise.reps}
-            <br />
-            <strong>Sets:</strong> {exercise.sets}
-            <br />
-            <strong>Weight:</strong> {exercise.weight}
-            <br />
-            <strong>Focus:</strong> {exercise.body_parts}
-            <br />
-            <strong>Description:</strong> {exercise.description}
-          </Box>
-        ))}
+        <Typography variant="h6" sx={{ marginTop: 1 }}>
+          Exercises
+        </Typography>
+        <Box
+          sx={{
+            maxHeight: 400,
+            overflowY: "auto",
+            padding: 1,
+          }}
+        >
+          {workout.exercises.map((exercise, index) => (
+            <Box key={exercise.id} sx={{ padding: 1, marginBottom: 1 }}>
+              <Typography>
+                <b>{exercise.name}</b>
+              </Typography>
+              <strong>Reps:</strong> {exercise.reps}
+              <br />
+              <strong>Sets:</strong> {exercise.sets}
+              <br />
+              <strong>Weight:</strong> {exercise.weight}
+              <br />
+              <strong>Focus:</strong> {exercise.body_parts}
+              <br />
+              <strong>Description:</strong> {exercise.description}
+            </Box>
+          ))}
+        </Box>
       </Box>
+
       <Box
         sx={{
           display: "flex",

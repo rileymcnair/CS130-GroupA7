@@ -30,17 +30,13 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
     setDialogOpen(false);
   };
   const handleUpdateCardDetails = (updatedMeal) => {
+    // Update the meal's state in the parent or the current component
     setUserMeals((prevMeals) =>
-      // prevMeals.map((meal) =>
-      //   meal.id === updatedMeal.id ? updatedMeal : meal // Replace the updated meal
-      // )
-      {
-        meal.name = updatedMeal.name;
-        meal.calories = updatedMeal.calories;
-        meal.proteins = updatedMeal.proteins;
-      },
+      prevMeals.map((m) => (m.id === updatedMeal.id ? updatedMeal : m))
     );
-    console.log("Updated meal saved to state:", updatedMeal);
+
+    // Update the meal directly in this card
+    Object.assign(meal, updatedMeal);
   };
   const handleSaveMealToServer = async (updatedMeal) => {
     try {
@@ -128,13 +124,13 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
         }
       } else {
         console.error(
-          `Failed to ${isFavorite ? "remove" : "add"} meal from favorites`,
+          `Failed to ${isFavorite ? "remove" : "add"} meal from favorites`
         );
       }
     } catch (error) {
       console.error(
         `Error ${isFavorite ? "removing" : "adding"} meal from favorites:`,
-        error,
+        error
       );
     }
   };
@@ -165,202 +161,214 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
   };
 
   return (
-    <Paper
-      sx={{
-        marginTop: 4,
-        padding: 3,
-        borderRadius: 2,
-        flexDirection: "column",
-        display: "flex",
-        maxWidth: 330,
-      }}
-    >
-      {/* Header Row */}
-      <Box
+    <Box>
+      <Paper
         sx={{
+          marginTop: 4,
+          padding: 3,
+          borderRadius: 2,
+          flexDirection: "column",
           display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          marginBottom: 1,
+          maxWidth: 330,
+          height: 450,
+          maxHeight: 500,
+          // overflow: "hidden",
+          // overflowY: "auto",
         }}
       >
-        <Typography variant="h6" sx={{ fontWeight: "bold" }}>
-          {meal.name || "Meal Name"}
-        </Typography>
-        <IconButton
-          onClick={handleFavoriteToggle}
-          edge="end"
-          color="primary"
-          sx={{ mr: 1 }}
+        {/* Header Row */}
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 1,
+          }}
         >
-          {isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
-        </IconButton>
-        {/* <IconButton
+          <Typography variant="h6" sx={{ fontWeight: "bold" }}>
+            {meal.name || "Meal Name"}
+          </Typography>
+          <IconButton
+            onClick={handleFavoriteToggle}
+            edge="end"
+            color="primary"
+            sx={{ mr: 1 }}
+          >
+            {isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
+          </IconButton>
+          {/* <IconButton
           onClick={console.log("should open menu to edit the meal")}
           color="primary"
         >
           <EditIcon />
         </IconButton> */}
-      </Box>
+        </Box>
 
-      {/* Calories */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "center",
-          flexDirection: "row",
-          marginBlock: 2,
-        }}
-      >
+        {/* Calories */}
         <Box
           sx={{
             display: "flex",
-            alignItems: "center",
-            flexDirection: "column",
-            flex: 1,
+            justifyContent: "center",
+            flexDirection: "row",
+            marginBlock: 2,
           }}
         >
-          <Typography variant="body1" sx={{}}>
-            <strong>Calories</strong>
-          </Typography>
-          <Typography variant="body1" sx={{}}>
-            {meal.calories}
-          </Typography>
-        </Box>
-      </Box>
-      {/* Macros Section */}
-      <Box
-        sx={{
-          flexDirection: "column",
-          justifyContent: "center",
-          alignItems: "center",
-        }}
-      >
-        <Box>
-          <Typography variant="body1" sx={{}}>
-            <strong>Macros</strong>
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "left",
-            marginBottom: 3,
-          }}
-        >
-          {/* Macronutrient Chart */}
-          <Box
-            sx={{
-              flex: 0,
-              width: "auto",
-              height: "auto",
-            }}
-          >
-            <MacronutrientChart
-              proteins={meal.proteins}
-              carbs={meal.carbs}
-              fats={meal.fats}
-              calories={meal.calories}
-            />
-          </Box>
-
-          {/* Macro Details */}
           <Box
             sx={{
               display: "flex",
-              flexDirection: "row",
               alignItems: "center",
-              justifyContent: "space-between",
+              flexDirection: "column",
               flex: 1,
-              marginLeft: 3,
             }}
           >
-            <Typography sx={{ flex: 1, textAlign: "center" }}>
-              <strong>Protein</strong>
-              <br />
-              {meal.proteins}g
+            <Typography variant="body1" sx={{}}>
+              <strong>Calories</strong>
             </Typography>
-            <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
-            <Typography sx={{ flex: 1, textAlign: "center" }}>
-              <strong>Fat</strong>
-              <br />
-              {meal.fats}g
-            </Typography>
-            <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
-            <Typography sx={{ flex: 1, textAlign: "center" }}>
-              <strong>Carbs</strong>
-              <br />
-              {meal.carbs}g
+            <Typography variant="body1" sx={{}}>
+              {meal.calories}
             </Typography>
           </Box>
         </Box>
-      </Box>
-      {/* Ingredients Section */}
-      <Box sx={{ marginBottom: 2, flex: 1 }}>
-        <Typography
-          variant="subtitle1"
-          sx={{ fontWeight: "bold", marginBottom: 1 }}
+        {/* Macros Section */}
+        <Box
+          sx={{
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
         >
-          Ingredients
-        </Typography>
-        <Box sx={{ paddingLeft: 2 }}>
-          {meal.ingredients.map((ingredient, index) => (
-            <Typography key={index} variant="body2">
-              {ingredient}
+          <Box>
+            <Typography variant="body1" sx={{}}>
+              <strong>Macros</strong>
             </Typography>
-          ))}
-        </Box>
-      </Box>
-
-      {/* See Details Section */}
-      <Box
-        sx={{
-          display: "flex",
-          justifyContent: "space-between",
-          position: "relative",
-          marginTop: "auto",
-        }}
-      >
-        {isFavorite && (
-          <IconButton
-            onClick={handleRemoveMeal}
-            color="error"
+          </Box>
+          <Box
             sx={{
-              cursor: "pointer",
-              fontWeight: "bold",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "left",
+              marginBottom: 3,
             }}
           >
-            <DeleteIcon />
-          </IconButton>
-        )}
-        <Typography
-          variant="body2"
-          sx={{
-            color: "primary.main",
-            cursor: "pointer",
-            fontWeight: "bold",
-            position: "absolute",
-            bottom: 5,
-            right: 16,
-          }}
-          onClick={handleDialogOpen}
-        >
-          Edit
-        </Typography>
-      </Box>
+            {/* Macronutrient Chart */}
+            <Box
+              sx={{
+                flex: 0,
+                width: "auto",
+                height: "auto",
+              }}
+            >
+              <MacronutrientChart
+                proteins={meal.proteins}
+                carbs={meal.carbs}
+                fats={meal.fats}
+                calories={meal.calories}
+              />
+            </Box>
 
-      <MealDetailsDialog
-        open={isDialogOpen}
-        onClose={handleDialogClose}
-        meal={meal}
-        onSave={(updatedMeal) => {
-          handleUpdateCardDetails(updatedMeal); // Call parent's update function
-          handleSaveMealToServer(updatedMeal);
-          handleDialogClose(); // Close dialog after saving
-        }}
-      />
-    </Paper>
+            {/* Macro Details */}
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flex: 1,
+                marginLeft: 3,
+              }}
+            >
+              <Typography sx={{ flex: 1, textAlign: "center" }}>
+                <strong>Protein</strong>
+                <br />
+                {meal.proteins}g
+              </Typography>
+              <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+              <Typography sx={{ flex: 1, textAlign: "center" }}>
+                <strong>Fat</strong>
+                <br />
+                {meal.fats}g
+              </Typography>
+              <Divider orientation="vertical" flexItem sx={{ mx: 2 }} />
+              <Typography sx={{ flex: 1, textAlign: "center" }}>
+                <strong>Carbs</strong>
+                <br />
+                {meal.carbs}g
+              </Typography>
+            </Box>
+          </Box>
+        </Box>
+        {/* Ingredients Section */}
+        <Box
+          sx={{
+            marginBottom: 2,
+            flex: 1,
+            overflowY: "auto", // Enable vertical scrolling
+            maxHeight: 200, // Set a fixed height to constrain the content
+          }}
+        >
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: "bold", marginBottom: 1 }}
+          >
+            Ingredients
+          </Typography>
+          <Box sx={{ paddingLeft: 2 }}>
+            {meal.ingredients.map((ingredient, index) => (
+              <Typography key={index} variant="body2">
+                {ingredient}
+              </Typography>
+            ))}
+          </Box>
+        </Box>
+
+        {/* See Details Section */}
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            position: "relative",
+            marginTop: "auto",
+          }}
+        >
+          {isFavorite && (
+            <IconButton
+              onClick={handleRemoveMeal}
+              color="error"
+              sx={{
+                cursor: "pointer",
+                fontWeight: "bold",
+              }}
+            >
+              <DeleteIcon />
+            </IconButton>
+          )}
+          <Typography
+            variant="body2"
+            sx={{
+              color: "primary.main",
+              cursor: "pointer",
+              fontWeight: "bold",
+              position: "absolute",
+              bottom: 5,
+              right: 16,
+            }}
+            onClick={handleDialogOpen}
+          >
+            Edit
+          </Typography>
+          <MealDetailsDialog
+            open={isDialogOpen}
+            onClose={handleDialogClose}
+            meal={meal}
+            onSave={(updatedMeal) => {
+              handleUpdateCardDetails(updatedMeal); // Update state or prop data
+              handleSaveMealToServer(updatedMeal); // Send changes to the server
+              handleDialogClose(); // Close the dialog
+            }}
+          />
+        </Box>
+      </Paper>
+    </Box>
   );
 };
 

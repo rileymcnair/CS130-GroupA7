@@ -18,13 +18,14 @@ const CompactMealCard = ({ meal }) => {
         marginBottom: 2,
         maxHeight: 200,
         overflowY: "auto",
+        width: "100%",
       }}
     >
       <Typography variant="h6" gutterBottom>
         {meal.name || "Meal Name"}
       </Typography>
       <Typography variant="body2">
-        <strong>Protein:</strong> {meal.protein}g
+        <strong>Protein:</strong> {meal.proteins}g
       </Typography>
       <Typography variant="body2">
         <strong>Carbs:</strong> {meal.carbs}g
