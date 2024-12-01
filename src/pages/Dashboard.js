@@ -117,9 +117,9 @@ const Dashboard = () => {
             flex: 1,
             padding: 2,
             borderRadius: 2,
-            minWidth: { xs: "100%", md: "30%" },
+            // minWidth: { xs: "100%", md: "30%" },
             width: "auto",
-            maxWidth: 400,
+            maxWidth: 350,
           }}
         >
           {/* Calendar Heading */}

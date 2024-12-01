@@ -23,7 +23,7 @@ npm start -> to run the application
 2. Generate an API token
 3. Paste the token in `.env` file
 ```
-GOOGLE_API_KEY=<API-key>
+GOOGLE_API_KEY=API-key
 ```
 
 ## 4. Run the Flask Application
