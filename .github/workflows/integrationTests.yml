@@ -3,10 +3,10 @@ name: Integration Tests
 on:
   push:
     branches:
-      - issue-28
+      - main
   pull_request:
     branches:
-      - main1
+      - main
   workflow_run:
     workflows: ["Frontend Unit Tests", "Backend Unit Tests"]
     types:
