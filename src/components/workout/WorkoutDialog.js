@@ -8,8 +8,11 @@ import {
   Button,
   Box,
 } from "@mui/material";
+import DatePicker from "react-multi-date-picker";
 
 const WorkoutDialog = ({ open, handleClose, handleGenerateWorkout }) => {
+  const [selectedDates, setSelectedDates] = useState([]);
+
   const [workoutInput, setWorkoutInput] = useState({
     body_parts: "",
     total_minutes: "",
@@ -26,8 +29,14 @@ const WorkoutDialog = ({ open, handleClose, handleGenerateWorkout }) => {
   };
 
   const handleSubmit = () => {
-    handleGenerateWorkout(workoutInput);
+    let dates = selectedDates.map((dateObj) => ({
+      date: `${dateObj.year}-${dateObj.month.number}-${dateObj.day}`,
+      day: dateObj.weekDay.name,
+    }));
+  
+    handleGenerateWorkout({ ...workoutInput, dates });
   };
+  
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
@@ -57,6 +66,13 @@ const WorkoutDialog = ({ open, handleClose, handleGenerateWorkout }) => {
             onChange={handleInputChange}
             type="number"
             fullWidth
+          />
+          <label>Dates</label>
+          <DatePicker
+            style={{ width: "100%" }}
+            multiple
+            value={selectedDates}
+            onChange={setSelectedDates}
           />
         </Box>
       </DialogContent>

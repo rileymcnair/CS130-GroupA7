@@ -32,7 +32,15 @@ except Exception as e:
 
 # load API key from .env file
 load_dotenv()
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+# genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+# Validate API key
+if not GOOGLE_API_KEY:
+    raise ValueError("No Google API key found. Please set GOOGLE_API_KEY in your .env file.")
+
+# Configure Gemini
+genai.configure(api_key=GOOGLE_API_KEY)
 
 def get_current_date():
     now = datetime.now(pytz.UTC)  
@@ -147,17 +155,11 @@ def get_historical_data():
         if calendar_ref:
             calendar_docs = calendar_ref.get()
             for calendar in calendar_docs:
-                weeks_ids = calendar.to_dict()["weeks"]
-                for week_id in weeks_ids:
-                    week_ref = db.collection('Week').document(week_id)
-                    week_doc = week_ref.get()
-                    week_dict = week_doc.to_dict()
-                    if "days" in week_dict:
-                        for day_id in week_dict["days"].values():
-                            if day_id:
-                                day_ref = db.collection("Day").document(day_id)
-                                day_values = day_ref.get().to_dict()
-                                res.append(day_values)
+                day_ids = calendar.to_dict()["days"]
+                for day_id in day_ids:
+                    day_ref = db.collection('Day').document(day_id)
+                    day_values = day_ref.get().to_dict()
+                    res.append(day_values)
         return jsonify(res), 200
 
     except Exception as e:
@@ -656,6 +658,10 @@ def generate_meal():
     user_input = request.json
     if not user_input:
         return jsonify({"error": "Request body is required"}), 400
+    
+    email = user_input.get('email')  # Email sent by the client
+    if not email :
+        return jsonify({"error": "Email is required"}), 400
 
     try:
         model = genai.GenerativeModel('gemini-pro')
@@ -688,9 +694,42 @@ def generate_meal():
         except json.JSONDecodeError:
             return jsonify({"error": "Failed to parse model's response to JSON. Try again to generate a new response."}), 500
 
+        user_id = get_user_doc_id_by_email(email)
+        if not user_id:
+            return jsonify({"error": "User not found"}), 404
+        calendar_ref = db.collection('Calendar').where('belongs_to', '==', user_id)
+        #Assume user has one calendar
+        calendar_doc = calendar_ref.get()
+        if (not len(calendar_doc) or not calendar_doc[0].exists):
+            return jsonify({"error": "No calendars exist for user"}), 400
+        calendar_doc = calendar_doc[0]
+
         # store generated meal in Firestore
         meal_ref = db.collection('Meal').add(meal_data)
         meal_id = meal_ref[1].id
+        
+        # For each date specified, add the workout to a Day document
+        for dateObj in user_input.get('dates', []):  # Provide a default empty list to avoid errors
+            day_ids = calendar_doc.to_dict()["days"]
+            match = False
+            for day_id in day_ids:
+                day_ref = db.collection('Day').document(day_id)
+                day_values = day_ref.get().to_dict()
+                if dateObj.get('date') == day_values['date']:
+                    #Update
+                    day_ref.update({'meals': firestore.ArrayUnion([str(meal_id)])})
+                    match = True 
+            if not match:
+                # Create when record does not exist
+                doc_to_add = {
+                    'date': dateObj['date'],
+                    'day': dateObj['day'],
+                    'meals': [],
+                    'workouts': [str(meal_id)]
+                }
+                new_day_ref = db.collection('Day').add(doc_to_add)
+                new_day_id = new_day_ref[1].id
+                calendar_doc.reference.update({'days': firestore.ArrayUnion([str(new_day_id)])})
 
         return jsonify({
             "message": "Meal generated successfully",
@@ -706,6 +745,10 @@ def generate_workout():
     user_input = request.json
     if not user_input:
         return jsonify({"error": "Request body is required"}), 400
+    
+    email = user_input.get('email')
+    if not email:
+        return jsonify({"error": "Email is required"}), 400
 
     try:
         model = genai.GenerativeModel('gemini-pro')
@@ -756,9 +799,40 @@ def generate_workout():
 
         workout_data['exercises'] = exercise_ids
         workout_data['body_part_focus'] = body_part_focus
-
         workout_ref = db.collection('Workout').add(workout_data)
         workout_id = workout_ref[1].id
+
+        user_id = get_user_doc_id_by_email(email)
+        if not user_id:
+            return jsonify({"error": "User not found"}), 404
+        calendar_ref = db.collection('Calendar').where('belongs_to', '==', user_id)
+        #Assume user has one calendar
+        calendar_doc = calendar_ref.get()
+        if (not len(calendar_doc) or not calendar_doc[0].exists):
+            return jsonify({"error": "No calendars exist for user"}), 400
+        calendar_doc = calendar_doc[0]
+        # For each date specified, add the workout to a Day document
+         for dateObj in user_input.get('dates', []):
+            day_ids = calendar_doc.to_dict()["days"]
+            match = False
+            for day_id in day_ids:
+                day_ref = db.collection('Day').document(day_id)
+                day_values = day_ref.get().to_dict()
+                if dateObj.get('date') == day_values['date']:
+                    #Update
+                    day_ref.update({'workouts': firestore.ArrayUnion([str(workout_id)])})
+                    match = True 
+            if not match:
+                # Create when record does not exist
+                doc_to_add = {
+                    'date': dateObj['date'],
+                    'day': dateObj['day'],
+                    'meals': [],
+                    'workouts': [str(workout_id)]
+                }
+                new_day_ref = db.collection('Day').add(doc_to_add)
+                new_day_id = new_day_ref[1].id
+                calendar_doc.reference.update({'days': firestore.ArrayUnion([str(new_day_id)])})
 
         return jsonify({
             "message": "Workout generated successfully",
@@ -837,6 +911,8 @@ def get_n_not_favorited_workouts():
 
                 exercise_details = []
                 for exercise_id in workout_data.get("exercises", []):
+                    if not isinstance(exercise_id, str):
+                        continue
                     exercise_ref = db.collection('Exercise').document(exercise_id)
                     exercise_doc = exercise_ref.get()
                     if exercise_doc.exists:
@@ -854,6 +930,7 @@ def get_n_not_favorited_workouts():
         return jsonify({"error": "Invalid number of workouts requested"}), 400
 
     except Exception as e:
+        print(e)
         return jsonify({"error": str(e)}), 500
     
 @app.route('/get_favorite_meals', methods=['GET'])
@@ -1170,7 +1247,11 @@ def get_calendar():
         return jsonify({"error": "Email parameter is required"}), 400
 
     try:
-        calendar_query = db.collection('Calendar').where('belongs_to', '==', email)
+        # Get the user document ID by email
+        user_id = get_user_doc_id_by_email(email)
+        if not user_id:
+            return jsonify({"error": "User not found"}), 404
+        calendar_query = db.collection('Calendar').where('belongs_to', '==', user_id)
         calendar_docs = calendar_query.get()
 
         if not calendar_docs:
@@ -1209,21 +1290,13 @@ def get_workouts_on_day():
         day_data = day_doc.to_dict()
         day_id = day_doc.id
 
-        # Use the `day` field directly to determine the relevant day_id field (e.g., "monday_id")
-        day_of_week = day_data.get('day', '').lower() + '_id'  # e.g., "monday_id"
-
-        # Validate Week contains the Day ID
-        week_docs = db.collection('Week').where(f'days.{day_of_week}', '==', day_id).get()
-        if not week_docs:
-            return jsonify({"error": "No Week entry contains the specified Day"}), 404
-
-        week_doc = week_docs[0]
-        week_id = week_doc.id
-
-        # Validate Calendar contains the Week ID
-        calendar_docs = db.collection('Calendar').where('weeks', 'array_contains', week_id).get()
-        if not calendar_docs:
-            return jsonify({"error": "No Calendar entry contains the specified Week"}), 404
+        # Validate Calendar contains the Day ID
+        calendar_docs = db.collection('Calendar').where('belongs_to', '==', user_id).get()
+        # Assume the user has only one calendar
+        calendar_doc = calendar_docs[0]
+        
+        if day_id not in calendar_doc.to_dict()["days"]:
+            return jsonify({"error": "No Calendar entry contains the specified Day"}), 404
 
         calendar_doc = calendar_docs[0]
         calendar_data = calendar_doc.to_dict()
@@ -1340,29 +1413,13 @@ def get_meals_on_day():
         day_data = day_doc.to_dict()
         day_id = day_doc.id
 
-        # Use the `day` field directly to determine the relevant day_id field (e.g., "monday_id")
-        day_of_week = day_data.get('day', '').lower() + '_id'  # e.g., "monday_id"
-
-        # Validate Week contains the Day ID
-        week_docs = db.collection('Week').get()
-
-        # Filter the documents to find the one where days[day_of_week] == day_id
-        matching_week_doc = None
-        for doc in week_docs:
-            week_data = doc.to_dict()
-            if week_data.get('days', {}).get(day_of_week) == day_id:
-                matching_week_doc = doc
-                break
-
-        if not matching_week_doc:
-            return jsonify({"error": "No Week entry contains the specified Day"}), 404
-
-        week_id = matching_week_doc.id
-
-        # Validate Calendar contains the Week ID
-        calendar_docs = db.collection('Calendar').where('weeks', 'array_contains', week_id).get()
-        if not calendar_docs:
-            return jsonify({"error": "No Calendar entry contains the specified Week"}), 404
+        # Validate Calendar contains the Day ID
+        calendar_docs = db.collection('Calendar').where('belongs_to', '==', user_id).get()
+        # Assume the user has only one calendar
+        calendar_doc = calendar_docs[0]
+        
+        if day_id not in calendar_doc.to_dict()["days"]:
+            return jsonify({"error": "No Calendar entry contains the specified Day"}), 404
 
         calendar_doc = calendar_docs[0]
         calendar_data = calendar_doc.to_dict()
