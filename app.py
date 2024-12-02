@@ -650,6 +650,10 @@ def generate_meal():
     user_input = request.json
     if not user_input:
         return jsonify({"error": "Request body is required"}), 400
+    
+    email = user_input.get('email')  # Email sent by the client
+    if not email :
+        return jsonify({"error": "Email is required"}), 400
 
     try:
         model = genai.GenerativeModel('gemini-pro')
@@ -682,9 +686,38 @@ def generate_meal():
         except json.JSONDecodeError:
             return jsonify({"error": "Failed to parse model's response to JSON. Try again to generate a new response."}), 500
 
+        user_id = get_user_doc_id_by_email(email)
+        if not user_id:
+            return jsonify({"error": "User not found"}), 404
+        calendar_ref = db.collection('Calendar').where('belongs_to', '==', user_id)
+        #Assume user has one calendar
+        calendar_doc = calendar_ref.get()
+        if (not calendar_doc.exists):
+            return jsonify({"error": "No calendars exist for user"}), 400
+
         # store generated meal in Firestore
         meal_ref = db.collection('Meal').add(meal_data)
         meal_id = meal_ref[1].id
+        
+        # For each date specified, add the workout to a Day document
+        for dateObj in user_input.get('dates'):
+            day_ref = db.collection('Day').where('date', '==', dateObj['date'])
+            if day_ref.get().exists:
+                # Update
+                day_ref, write_result = day_ref.update({'meals': firestore.ArrayUnion(str(meal_id))})
+            else:
+                # Create when record does not exist
+                doc_to_add = {
+                    'date': dateObj['date'],
+                    'day': dateObj['day'],
+                    'meals': [str(meal_id)],
+                    'workouts': []
+                }
+                day_ref, write_result = db.collection('Day').add(doc_to_add)
+            
+            new_day_id = write_result.id
+            calendar_ref.update({'days': firestore.ArrayUnion(str(new_day_id))})
+                  
 
         return jsonify({
             "message": "Meal generated successfully",
@@ -700,6 +733,10 @@ def generate_workout():
     user_input = request.json
     if not user_input:
         return jsonify({"error": "Request body is required"}), 400
+    
+    email = user_input.get('email')  # Email sent by the client
+    if not email :
+        return jsonify({"error": "Email is required"}), 400
 
     try:
         model = genai.GenerativeModel('gemini-pro')
@@ -753,6 +790,34 @@ def generate_workout():
 
         workout_ref = db.collection('Workout').add(workout_data)
         workout_id = workout_ref[1].id
+        
+        user_id = get_user_doc_id_by_email(email)
+        if not user_id:
+            return jsonify({"error": "User not found"}), 404
+        calendar_ref = db.collection('Calendar').where('belongs_to', '==', user_id)
+        #Assume user has one calendar
+        calendar_doc = calendar_ref.get()
+        if (not calendar_doc.exists):
+            return jsonify({"error": "No calendars exist for user"}), 400
+        
+        # For each date specified, add the workout to a Day document
+        for dateObj in user_input.get('dates'):
+            day_ref = db.collection('Day').where('date', '==', dateObj['date'])
+            if day_ref.get().exists:
+                # Update
+                day_ref, write_result = day_ref.update({'workouts': firestore.ArrayUnion(str(workout_id))})
+            else:
+                # Create when record does not exist
+                doc_to_add = {
+                    'date': dateObj['date'],
+                    'day': dateObj['day'],
+                    'meals': [],
+                    'workouts': [str(workout_id)]
+                }
+                day_ref, write_result = db.collection('Day').add(doc_to_add)
+                
+                new_day_id = write_result.id
+                calendar_ref.update({'days': firestore.ArrayUnion(str(new_day_id))})
 
         return jsonify({
             "message": "Workout generated successfully",
@@ -1164,7 +1229,11 @@ def get_calendar():
         return jsonify({"error": "Email parameter is required"}), 400
 
     try:
-        calendar_query = db.collection('Calendar').where('belongs_to', '==', email)
+        # Get the user document ID by email
+        user_id = get_user_doc_id_by_email(email)
+        if not user_id:
+            return jsonify({"error": "User not found"}), 404
+        calendar_query = db.collection('Calendar').where('belongs_to', '==', user_id)
         calendar_docs = calendar_query.get()
 
         if not calendar_docs:
