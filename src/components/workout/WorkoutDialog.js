@@ -33,8 +33,10 @@ const WorkoutDialog = ({ open, handleClose, handleGenerateWorkout }) => {
       date: `${dateObj.year}-${dateObj.month.number}-${dateObj.day}`,
       day: dateObj.weekDay.name,
     }));
-    dates = handleGenerateWorkout({ ...workoutInput, dates });
+  
+    handleGenerateWorkout({ ...workoutInput, dates });
   };
+  
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
