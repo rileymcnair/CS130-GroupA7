@@ -29,7 +29,7 @@ const WorkoutDialog = ({ open, handleClose, handleGenerateWorkout }) => {
   };
 
   const handleSubmit = () => {
-    const dates = selectedDates.map((dateObj) => ({
+    let dates = selectedDates.map((dateObj) => ({
       date: `${dateObj.year}-${dateObj.month.number}-${dateObj.day}`,
       day: dateObj.weekDay.name,
     }));

@@ -692,8 +692,9 @@ def generate_meal():
         calendar_ref = db.collection('Calendar').where('belongs_to', '==', user_id)
         #Assume user has one calendar
         calendar_doc = calendar_ref.get()
-        if (not calendar_doc.exists):
+        if (not len(calendar_doc) or not calendar_doc[0].exists):
             return jsonify({"error": "No calendars exist for user"}), 400
+        calendar_doc = calendar_doc[0]
 
         # store generated meal in Firestore
         meal_ref = db.collection('Meal').add(meal_data)
@@ -701,22 +702,26 @@ def generate_meal():
         
         # For each date specified, add the workout to a Day document
         for dateObj in user_input.get('dates'):
-            day_ref = db.collection('Day').where('date', '==', dateObj['date'])
-            if day_ref.get().exists:
-                # Update
-                day_ref, write_result = day_ref.update({'meals': firestore.ArrayUnion(str(meal_id))})
-            else:
+            day_ids = calendar_doc.to_dict()["days"]
+            match = False
+            for day_id in day_ids:
+                day_ref = db.collection('Day').document(day_id)
+                day_values = day_ref.get().to_dict()
+                if dateObj.get('date') == day_values['date']:
+                    #Update
+                    day_ref.update({'meals': firestore.ArrayUnion([str(meal_id)])})
+                    match = True 
+            if not match:
                 # Create when record does not exist
                 doc_to_add = {
                     'date': dateObj['date'],
                     'day': dateObj['day'],
-                    'meals': [str(meal_id)],
-                    'workouts': []
+                    'meals': [],
+                    'workouts': [str(meal_id)]
                 }
-                day_ref, write_result = db.collection('Day').add(doc_to_add)
-            
-            new_day_id = write_result.id
-            calendar_ref.update({'days': firestore.ArrayUnion(str(new_day_id))})
+                new_day_ref, write_result = db.collection('Day').add(doc_to_add)
+                new_day_id = write_result.id
+                calendar_doc.reference.update({'days': firestore.ArrayUnion([str(new_day_id)])})
                   
 
         return jsonify({
@@ -797,16 +802,21 @@ def generate_workout():
         calendar_ref = db.collection('Calendar').where('belongs_to', '==', user_id)
         #Assume user has one calendar
         calendar_doc = calendar_ref.get()
-        if (not calendar_doc.exists):
+        if (not len(calendar_doc) or not calendar_doc[0].exists):
             return jsonify({"error": "No calendars exist for user"}), 400
-        
+        calendar_doc = calendar_doc[0]
         # For each date specified, add the workout to a Day document
         for dateObj in user_input.get('dates'):
-            day_ref = db.collection('Day').where('date', '==', dateObj['date'])
-            if day_ref.get().exists:
-                # Update
-                day_ref, write_result = day_ref.update({'workouts': firestore.ArrayUnion(str(workout_id))})
-            else:
+            day_ids = calendar_doc.to_dict()["days"]
+            match = False
+            for day_id in day_ids:
+                day_ref = db.collection('Day').document(day_id)
+                day_values = day_ref.get().to_dict()
+                if dateObj.get('date') == day_values['date']:
+                    #Update
+                    day_ref.update({'workouts': firestore.ArrayUnion([str(workout_id)])})
+                    match = True 
+            if not match:
                 # Create when record does not exist
                 doc_to_add = {
                     'date': dateObj['date'],
@@ -814,10 +824,9 @@ def generate_workout():
                     'meals': [],
                     'workouts': [str(workout_id)]
                 }
-                day_ref, write_result = db.collection('Day').add(doc_to_add)
-                
+                new_day_ref, write_result = db.collection('Day').add(doc_to_add)
                 new_day_id = write_result.id
-                calendar_ref.update({'days': firestore.ArrayUnion(str(new_day_id))})
+                calendar_doc.reference.update({'days': firestore.ArrayUnion([str(new_day_id)])})
 
         return jsonify({
             "message": "Workout generated successfully",
