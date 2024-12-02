@@ -32,7 +32,15 @@ except Exception as e:
 
 # load API key from .env file
 load_dotenv()
-genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+# genai.configure(api_key=os.getenv("GOOGLE_API_KEY"))
+GOOGLE_API_KEY = os.getenv("GOOGLE_API_KEY")
+
+# Validate API key
+if not GOOGLE_API_KEY:
+    raise ValueError("No Google API key found. Please set GOOGLE_API_KEY in your .env file.")
+
+# Configure Gemini
+genai.configure(api_key=GOOGLE_API_KEY)
 
 def get_current_date():
     now = datetime.now(pytz.UTC)  
@@ -701,7 +709,7 @@ def generate_meal():
         meal_id = meal_ref[1].id
         
         # For each date specified, add the workout to a Day document
-        for dateObj in user_input.get('dates'):
+        for dateObj in user_input.get('dates', []):  # Provide a default empty list to avoid errors
             day_ids = calendar_doc.to_dict()["days"]
             match = False
             for day_id in day_ids:
@@ -719,10 +727,9 @@ def generate_meal():
                     'meals': [],
                     'workouts': [str(meal_id)]
                 }
-                new_day_ref, write_result = db.collection('Day').add(doc_to_add)
-                new_day_id = write_result.id
+                new_day_ref = db.collection('Day').add(doc_to_add)
+                new_day_id = new_day_ref[1].id
                 calendar_doc.reference.update({'days': firestore.ArrayUnion([str(new_day_id)])})
-                  
 
         return jsonify({
             "message": "Meal generated successfully",
@@ -739,8 +746,8 @@ def generate_workout():
     if not user_input:
         return jsonify({"error": "Request body is required"}), 400
     
-    email = user_input.get('email')  # Email sent by the client
-    if not email :
+    email = user_input.get('email')
+    if not email:
         return jsonify({"error": "Email is required"}), 400
 
     try:
@@ -792,10 +799,9 @@ def generate_workout():
 
         workout_data['exercises'] = exercise_ids
         workout_data['body_part_focus'] = body_part_focus
-
         workout_ref = db.collection('Workout').add(workout_data)
         workout_id = workout_ref[1].id
-        
+
         user_id = get_user_doc_id_by_email(email)
         if not user_id:
             return jsonify({"error": "User not found"}), 404
@@ -806,7 +812,7 @@ def generate_workout():
             return jsonify({"error": "No calendars exist for user"}), 400
         calendar_doc = calendar_doc[0]
         # For each date specified, add the workout to a Day document
-        for dateObj in user_input.get('dates'):
+         for dateObj in user_input.get('dates', []):
             day_ids = calendar_doc.to_dict()["days"]
             match = False
             for day_id in day_ids:
@@ -824,8 +830,8 @@ def generate_workout():
                     'meals': [],
                     'workouts': [str(workout_id)]
                 }
-                new_day_ref, write_result = db.collection('Day').add(doc_to_add)
-                new_day_id = write_result.id
+                new_day_ref = db.collection('Day').add(doc_to_add)
+                new_day_id = new_day_ref[1].id
                 calendar_doc.reference.update({'days': firestore.ArrayUnion([str(new_day_id)])})
 
         return jsonify({
@@ -905,6 +911,8 @@ def get_n_not_favorited_workouts():
 
                 exercise_details = []
                 for exercise_id in workout_data.get("exercises", []):
+                    if not isinstance(exercise_id, str):
+                        continue
                     exercise_ref = db.collection('Exercise').document(exercise_id)
                     exercise_doc = exercise_ref.get()
                     if exercise_doc.exists:
@@ -922,6 +930,7 @@ def get_n_not_favorited_workouts():
         return jsonify({"error": "Invalid number of workouts requested"}), 400
 
     except Exception as e:
+        print(e)
         return jsonify({"error": str(e)}), 500
     
 @app.route('/get_favorite_meals', methods=['GET'])
