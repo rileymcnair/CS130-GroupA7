@@ -733,7 +733,6 @@ def generate_meal():
         }), 201
 
     except Exception as e:
-        print(e)
         return jsonify({"error": str(e)}), 500
 
 @app.route('/generate_workout', methods=['POST'])
