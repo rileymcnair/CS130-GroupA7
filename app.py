@@ -812,7 +812,7 @@ def generate_workout():
             return jsonify({"error": "No calendars exist for user"}), 400
         calendar_doc = calendar_doc[0]
         # For each date specified, add the workout to a Day document
-         for dateObj in user_input.get('dates', []):
+        for dateObj in user_input.get('dates', []):
             day_ids = calendar_doc.to_dict()["days"]
             match = False
             for day_id in day_ids:
