@@ -11,6 +11,18 @@ import {
 } from "@mui/material";
 import { Delete as DeleteIcon, Add as AddIcon } from "@mui/icons-material";
 
+/**
+ * FavoriteWorkouts component displays a list of the user's favorite workouts.
+ * Each workout in the list shows its details such as name, focus area, total minutes,
+ * and a list of exercises with calories burned. Users can also remove workouts from
+ * their favorites using the delete button.
+ *
+ * @param {Object} props - The component props.
+ * @param {Array} props.workoutDetails - An array of workout objects, each containing details like name, focus area, total minutes, and exercises.
+ * @param {Object} props.profileData - The user's profile data, which includes a list of favorited workouts.
+ * @param {Function} props.handleWorkoutDialogOpen - Function to open the dialog to add a new workout.
+ * @param {Function} props.removeFavorite - Function to remove a workout from the user's favorites.
+ */
 const FavoriteWorkouts = ({
   workoutDetails,
   profileData,
@@ -19,6 +31,7 @@ const FavoriteWorkouts = ({
 }) => {
   return (
     <Box>
+      {/* Header with title and button to add workout */}
       <Box
         display="flex"
         justifyContent="space-between"
@@ -35,16 +48,19 @@ const FavoriteWorkouts = ({
         </Button>
       </Box>
 
+      {/* Paper container for the list of workouts */}
       <Paper
         sx={{ maxHeight: 900, overflow: "auto", bgcolor: "background.paper" }}
       >
         <List>
+          {/* Map over workoutDetails to render each workout */}
           {workoutDetails.map(
             (workout, index) =>
               workout && (
                 <React.Fragment key={profileData.favorited_workouts[index]}>
                   <ListItem
                     secondaryAction={
+                      // Delete button to remove the workout from favorites
                       <IconButton
                         onClick={() =>
                           removeFavorite(
@@ -60,6 +76,7 @@ const FavoriteWorkouts = ({
                     }
                   >
                     <Box sx={{ width: "100%" }}>
+                      {/* Workout details */}
                       <Typography>
                         <strong>Name:</strong> {workout?.name || ""}
                       </Typography>
@@ -74,6 +91,7 @@ const FavoriteWorkouts = ({
                       <Typography>
                         <strong>Exercises:</strong>
                       </Typography>
+                      {/* Map over exercises to display each one */}
                       {workout?.exercises?.map(
                         (exercise, i) =>
                           exercise && (
@@ -88,6 +106,7 @@ const FavoriteWorkouts = ({
                       )}
                     </Box>
                   </ListItem>
+                  {/* Divider between workouts */}
                   {index < workoutDetails.length - 1 && <Divider />}
                 </React.Fragment>
               ),

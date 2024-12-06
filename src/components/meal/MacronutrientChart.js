@@ -49,16 +49,6 @@ const MacronutrientChart = ({ proteins, carbs, fats, calories }) => {
     layout: {
       padding: 10,
     },
-    elements: {
-      center: {
-        text: `${calories} kcal`,
-        color: "#000", // Black text
-        fontStyle: "Arial", // Default font
-        sidePadding: 20, // Adds padding for text
-        minFontSize: 14, // Minimum font size
-        lineHeight: 25, // Text line height
-      },
-    },
     animation: {
       animateRotate: true,
       animateScale: true,
@@ -69,13 +59,9 @@ const MacronutrientChart = ({ proteins, carbs, fats, calories }) => {
   const centerTextPlugin = {
     id: "centerText",
     beforeDraw: (chart) => {
-      const { width } = chart;
-      const { height } = chart;
-      const { ctx } = chart;
-      // const text = `${calories} cal`;
-      // const subText = `${totalMacros}g`;
-      const text = ``;
-      const subText = ``;
+      const { width, height, ctx } = chart;
+      const text = `${calories} kcal`; // Display calories in the center
+      const subText = `${totalMacros}g`; // Display total macros (protein + carbs + fat)
 
       // Draw calories (main text)
       ctx.restore();
@@ -96,7 +82,7 @@ const MacronutrientChart = ({ proteins, carbs, fats, calories }) => {
   };
 
   return (
-    <div style={{ width: "100px", height: "100px" }}>
+    <div style={{ width: "100%", height: "100%" }}>
       <Doughnut data={data} options={options} plugins={[centerTextPlugin]} />
     </div>
   );

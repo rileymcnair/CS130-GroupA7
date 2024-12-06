@@ -10,9 +10,17 @@ import {
 } from "@mui/material";
 import DatePicker from "react-multi-date-picker";
 
+/**
+ * WorkoutDialog component provides a form to generate a workout by selecting dates, body parts to focus on,
+ * total workout minutes, and average calories burned.
+ *
+ * @param {Object} props - The component props.
+ * @param {boolean} props.open - Whether the dialog is open or not.
+ * @param {function} props.handleClose - Function to close the dialog.
+ * @param {function} props.handleGenerateWorkout - Function to handle the workout generation with the input data.
+ */
 const WorkoutDialog = ({ open, handleClose, handleGenerateWorkout }) => {
   const [selectedDates, setSelectedDates] = useState([]);
-
   const [workoutInput, setWorkoutInput] = useState({
     body_parts: "",
     total_minutes: "",
@@ -20,6 +28,11 @@ const WorkoutDialog = ({ open, handleClose, handleGenerateWorkout }) => {
     body_part_focus: "",
   });
 
+  /**
+   * Handles changes to the input fields and updates the workoutInput state.
+   * 
+   * @param {Object} e - The event object containing the input name and value.
+   */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setWorkoutInput((prev) => ({
@@ -28,15 +41,18 @@ const WorkoutDialog = ({ open, handleClose, handleGenerateWorkout }) => {
     }));
   };
 
+  /**
+   * Handles form submission by processing the selected dates and workout data, 
+   * then calling the handleGenerateWorkout function.
+   */
   const handleSubmit = () => {
     let dates = selectedDates.map((dateObj) => ({
       date: `${dateObj.year}-${dateObj.month.number}-${dateObj.day}`,
       day: dateObj.weekDay.name,
     }));
-  
+
     handleGenerateWorkout({ ...workoutInput, dates });
   };
-  
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">

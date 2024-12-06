@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Paper, Typography, Box, Dialog } from "@mui/material";
+import { Paper, Typography, Box, Dialog, DialogContent, DialogTitle } from "@mui/material";
 import MealCard from "./MealCard";
 
 const CompactMealCard = ({ meal }) => {
@@ -33,15 +33,22 @@ const CompactMealCard = ({ meal }) => {
       <Typography variant="body2">
         <strong>Fats:</strong> {meal.fats}g
       </Typography>
+
       <Typography variant="body2" sx={{ marginTop: 2 }}>
         <strong>Ingredients:</strong>
       </Typography>
       <Box sx={{ paddingLeft: 1 }}>
-        {meal.ingredients.map((ingredient, index) => (
-          <Typography key={index} variant="body2">
-            - {ingredient}
+        {meal.ingredients.length > 0 ? (
+          meal.ingredients.map((ingredient, index) => (
+            <Typography key={index} variant="body2">
+              - {ingredient}
+            </Typography>
+          ))
+        ) : (
+          <Typography variant="body2" color="text.secondary">
+            No ingredients listed
           </Typography>
-        ))}
+        )}
       </Box>
 
       <Box
@@ -60,8 +67,16 @@ const CompactMealCard = ({ meal }) => {
         </Typography>
       </Box>
 
-      <Dialog open={isDialogOpen} onClose={handleDialogClose}>
-        <MealCard meal={meal} />
+      <Dialog
+        open={isDialogOpen}
+        onClose={handleDialogClose}
+        maxWidth="md" // Add a maxWidth for more controlled dialog size
+        fullWidth
+      >
+        <DialogTitle>Meal Details</DialogTitle>
+        <DialogContent>
+          <MealCard meal={meal} />
+        </DialogContent>
       </Dialog>
     </Paper>
   );

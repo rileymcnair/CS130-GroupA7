@@ -9,9 +9,14 @@ import FavoriteWorkouts from "../components/profile/FavoriteWorkouts";
 import AddMealDialog from "../components/profile/AddMealDialog";
 import AddWorkoutDialog from "../components/profile/AddWorkoutDialog";
 
+/**
+ * Profile component allows the user to view and edit their profile,
+ * manage favorite meals and workouts, and submit new meals/workouts.
+ */
 function Profile() {
   const { user } = useAuth();
 
+  // State for profile data and editing status
   const [profileData, setProfileData] = useState({
     name: "",
     email: "",
@@ -23,13 +28,15 @@ function Profile() {
     favorited_meals: [],
     favorited_workouts: [],
   });
-
   const [isEditing, setIsEditing] = useState(false);
+
+  // State for handling dialog visibility and meal/workout details
   const [mealDetails, setMealDetails] = useState([]);
   const [workoutDetails, setWorkoutDetails] = useState([]);
   const [mealDialogOpen, setMealDialogOpen] = useState(false);
   const [workoutDialogOpen, setWorkoutDialogOpen] = useState(false);
 
+  // State for new meal and workout inputs
   const [newMeal, setNewMeal] = useState({
     name: "",
     calories: "",
@@ -39,7 +46,6 @@ function Profile() {
     type: "",
     ingredients: "",
   });
-
   const [newWorkout, setNewWorkout] = useState({
     name: "",
     total_minutes: "",
@@ -57,8 +63,10 @@ function Profile() {
     ],
   });
 
-  // profile handlers
-  const handleEdit = () => setIsEditing(true);
+  /**
+   * Handles profile data input changes.
+   * @param {object} e - The event object from the form input change.
+   */
   const handleChange = (e) => {
     const { name, value } = e.target;
     setProfileData((prevData) => ({
@@ -67,6 +75,7 @@ function Profile() {
     }));
   };
 
+  // Profile save handler
   const handleSave = async (e) => {
     e.preventDefault();
     try {
@@ -81,7 +90,7 @@ function Profile() {
     }
   };
 
-  // dialog handlers
+  // Meal and Workout dialog handlers
   const handleMealDialogOpen = () => setMealDialogOpen(true);
   const handleMealDialogClose = () => {
     setMealDialogOpen(false);
@@ -117,6 +126,12 @@ function Profile() {
     });
   };
 
+  /**
+   * Handles changes to workout exercises.
+   * @param {number} index - The index of the exercise to update.
+   * @param {string} field - The field to update within the exercise.
+   * @param {string} value - The new value for the field.
+   */
   const handleExerciseChange = (index, field, value) => {
     setNewWorkout((prev) => ({
       ...prev,
@@ -126,6 +141,9 @@ function Profile() {
     }));
   };
 
+  /**
+   * Adds a new exercise to the workout.
+   */
   const handleAddExercise = () => {
     setNewWorkout((prev) => ({
       ...prev,
@@ -144,7 +162,7 @@ function Profile() {
     }));
   };
 
-  // submit handlers
+  // Submit handlers for meal and workout
   const handleMealSubmit = async () => {
     const mealData = {
       email: user.email,
@@ -206,7 +224,9 @@ function Profile() {
     }
   };
 
-  // fetch functions
+  /**
+   * Fetches the user's profile data.
+   */
   const fetchProfile = async () => {
     try {
       const response = await fetch(`/get_profile?email=${user.email}`);
@@ -226,6 +246,11 @@ function Profile() {
     }
   };
 
+  /**
+   * Removes a meal or workout from the favorites.
+   * @param {string} type - The type of item ('meal' or 'workout').
+   * @param {string} id - The ID of the item to remove.
+   */
   const removeFavorite = async (type, id) => {
     const endpoint =
       type === "meal" ? "/remove_favorite_meal" : "/remove_favorite_workout";
@@ -263,120 +288,83 @@ function Profile() {
     }
   };
 
-  // effects
+  // Fetch user profile on component mount
   useEffect(() => {
     if (user) {
       fetchProfile();
     }
   }, [user]);
 
+  // Fetch meal details when favorited meals change
   useEffect(() => {
     const fetchMealDetails = async (mealId) => {
       const response = await fetch(`/get_meal_details?mealId=${mealId}`);
       return response.ok ? response.json() : null;
     };
 
-    if (profileData.favorited_meals.length > 0) {
-      Promise.all(
-        profileData.favorited_meals.map((mealId) => fetchMealDetails(mealId)),
-      )
-        .then((details) => setMealDetails(details))
-        .catch((error) => console.error("Error fetching meal details:", error));
+    if (profileData.favorited_meals.length) {
+      Promise.all(profileData.favorited_meals.map(fetchMealDetails))
+        .then(setMealDetails)
+        .catch(console.error);
     }
   }, [profileData.favorited_meals]);
 
+  // Fetch workout details when favorited workouts change
   useEffect(() => {
     const fetchWorkoutDetails = async (workoutId) => {
-      const response = await fetch(
-        `/get_workout_details?workoutId=${workoutId}`,
-      );
+      const response = await fetch(`/get_workout_details?workoutId=${workoutId}`);
       return response.ok ? response.json() : null;
     };
 
-    if (profileData.favorited_workouts.length > 0) {
-      Promise.all(
-        profileData.favorited_workouts.map((workoutId) =>
-          fetchWorkoutDetails(workoutId),
-        ),
-      )
-        .then((details) => setWorkoutDetails(details))
-        .catch((error) =>
-          console.error("Error fetching workout details:", error),
-        );
+    if (profileData.favorited_workouts.length) {
+      Promise.all(profileData.favorited_workouts.map(fetchWorkoutDetails))
+        .then(setWorkoutDetails)
+        .catch(console.error);
     }
   }, [profileData.favorited_workouts]);
 
-  if (!user) return <Typography>Loading...</Typography>;
-
   return (
-    <div>
-      <Box sx={{ padding: 0 }}>
-        <Box sx={{ display: "flex", gap: 3, marginTop: 4 }}>
-          <Box sx={{ minWidth: 400 }}>
-            <Card>
-              <CardContent>
-                {isEditing ? (
-                  <ProfileForm
-                    profileData={profileData}
-                    handleChange={handleChange}
-                    handleSave={handleSave}
-                  />
-                ) : (
-                  <ProfileInfo
-                    profileData={profileData}
-                    handleEdit={handleEdit}
-                  />
-                )}
-              </CardContent>
-            </Card>
-          </Box>
+    <Container>
+      <Typography variant="h4" gutterBottom>
+        Profile Page
+      </Typography>
+      <Card>
+        <CardContent>
+          {!isEditing ? (
+            <ProfileInfo profileData={profileData} onEdit={() => setIsEditing(true)} />
+          ) : (
+            <ProfileForm
+              profileData={profileData}
+              onChange={handleChange}
+              onSave={handleSave}
+            />
+          )}
+        </CardContent>
+      </Card>
 
-          <Box sx={{ maxWidth: 500 }}>
-            <Card>
-              <CardContent>
-                <FavoriteMeals
-                  mealDetails={mealDetails}
-                  profileData={profileData}
-                  handleMealDialogOpen={handleMealDialogOpen}
-                  removeFavorite={removeFavorite}
-                />
-              </CardContent>
-            </Card>
-          </Box>
-
-          <Box sx={{ maxWidth: 500 }}>
-            <Card>
-              <CardContent>
-                <FavoriteWorkouts
-                  workoutDetails={workoutDetails}
-                  profileData={profileData}
-                  handleWorkoutDialogOpen={handleWorkoutDialogOpen}
-                  removeFavorite={removeFavorite}
-                />
-              </CardContent>
-            </Card>
-          </Box>
-        </Box>
-
-        <AddMealDialog
-          open={mealDialogOpen}
-          handleClose={handleMealDialogClose}
-          newMeal={newMeal}
-          setNewMeal={setNewMeal}
-          handleSubmit={handleMealSubmit}
-        />
-
-        <AddWorkoutDialog
-          open={workoutDialogOpen}
-          handleClose={handleWorkoutDialogClose}
-          newWorkout={newWorkout}
-          setNewWorkout={setNewWorkout}
-          handleExerciseChange={handleExerciseChange}
-          handleAddExercise={handleAddExercise}
-          handleSubmit={handleWorkoutSubmit}
-        />
+      <Box>
+        <FavoriteMeals meals={mealDetails} onRemove={removeFavorite} />
+        <FavoriteWorkouts workouts={workoutDetails} onRemove={removeFavorite} />
       </Box>
-    </div>
+
+      <AddMealDialog
+        open={mealDialogOpen}
+        onClose={handleMealDialogClose}
+        onSubmit={handleMealSubmit}
+        newMeal={newMeal}
+        setNewMeal={setNewMeal}
+      />
+
+      <AddWorkoutDialog
+        open={workoutDialogOpen}
+        onClose={handleWorkoutDialogClose}
+        onSubmit={handleWorkoutSubmit}
+        newWorkout={newWorkout}
+        setNewWorkout={setNewWorkout}
+        handleExerciseChange={handleExerciseChange}
+        handleAddExercise={handleAddExercise}
+      />
+    </Container>
   );
 }
 

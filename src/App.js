@@ -12,22 +12,28 @@ import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './components/ProtectedRoute';
 import Logout from "./pages/Logout";
 
-
-
+/**
+ * The main App component that defines the routing and authentication logic for the application.
+ * It wraps the entire app in an AuthProvider to manage authentication context.
+ * Routes are defined for various pages including login, register, dashboard, and more.
+ */
 function App() {
   return (
-    <AuthProvider>
-      <Router>
+    <AuthProvider> {/* Provides authentication context to the entire app */}
+      <Router> {/* The Router component from react-router-dom is used to handle routing */}
         <Routes>
-          <Route path="/" element={<Landing />} />
-          <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
+          {/* Public Routes */}
+          <Route path="/" element={<Landing />} /> {/* Landing page route */}
+          <Route path="/login" element={<Login />} /> {/* Login page route */}
+          <Route path="/register" element={<Register />} /> {/* Registration page route */}
+
+          {/* Protected Routes */}
           <Route 
             path="/home" 
             element={
-              <ProtectedRoute>
-                <DashboardLayout>
-                  <Dashboard />
+              <ProtectedRoute> {/* Wrapper component that checks if user is authenticated */}
+                <DashboardLayout> {/* Layout component for the dashboard */}
+                  <Dashboard /> {/* The actual Dashboard component */}
                 </DashboardLayout>
               </ProtectedRoute>
             } 
@@ -37,7 +43,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardLayout>
-                  <Profile />
+                  <Profile /> {/* Profile page for authenticated users */}
                 </DashboardLayout>
               </ProtectedRoute>
             } 
@@ -47,7 +53,7 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardLayout>
-                  <Workout />
+                  <Workout /> {/* Workout page for authenticated users */}
                 </DashboardLayout>
               </ProtectedRoute>
             } 
@@ -57,15 +63,16 @@ function App() {
             element={
               <ProtectedRoute>
                 <DashboardLayout>
-                  <Meal />
+                  <Meal /> {/* Meal page for authenticated users */}
                 </DashboardLayout>
               </ProtectedRoute>
             } 
           />
+
+          {/* Logout Route */}
           <Route 
-          path="/logout" 
-          element={<Logout />} 
-          />
+            path="/logout" 
+            element={<Logout />} /> {/* Logout page route */}
         </Routes>
       </Router>
     </AuthProvider>

@@ -3,18 +3,38 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import "../styles/Auth.css";
 
+/**
+ * Login page component where users can log in using email/password or Google authentication.
+ * If the user is already authenticated, they are redirected to the home page.
+ * 
+ * @component
+ * @example
+ * return (
+ *   <Login />
+ * )
+ */
 function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const { login, loginWithGoogle, isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
+  /**
+   * Effect that redirects authenticated users to the home page.
+   * This runs when the `isAuthenticated` status changes.
+   */
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/home");
     }
   }, [isAuthenticated, navigate]);
 
+  /**
+   * Handles the login form submission.
+   * It attempts to log in the user with the provided email and password.
+   * 
+   * @param {Event} e - The form submit event.
+   */
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -25,6 +45,10 @@ function Login() {
     }
   };
 
+  /**
+   * Handles login via Google authentication.
+   * It attempts to log in the user using their Google account.
+   */
   const handleGoogleLogin = async () => {
     try {
       await loginWithGoogle();

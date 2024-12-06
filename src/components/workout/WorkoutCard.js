@@ -8,6 +8,16 @@ import DeleteIcon from "@mui/icons-material/Delete";
 import WorkoutDetailsDialog from "./WorkoutDetailsDialog";
 import { useAuth } from "../../context/AuthContext";
 
+/**
+ * WorkoutCard component displays details of a single workout. It includes options to toggle
+ * the workout as a favorite, edit workout details, and delete the workout if it is a favorite.
+ *
+ * @param {Object} props - The component props.
+ * @param {Object} props.workout - The workout object containing details such as name, exercises, and focus.
+ * @param {function} props.handleUpdate - Function to handle the update of the workout after editing.
+ * @param {function} props.handleDelete - Function to handle the removal of the workout.
+ * @param {function} props.onFavoriteToggle - Function to handle toggling the favorite status of the workout.
+ */
 const WorkoutCard = ({
   workout,
   handleUpdate,
@@ -19,15 +29,27 @@ const WorkoutCard = ({
   const [isDialogOpen, setDialogOpen] = useState(false);
   const [editedWorkout, setEditedWorkout] = useState(workout);
 
+  /**
+   * Opens the workout edit dialog with the current workout data.
+   */
   const handleDialogOpen = () => {
     setEditedWorkout(workout);
     setDialogOpen(true);
   };
 
+  /**
+   * Closes the workout edit dialog.
+   */
   const handleDialogClose = () => {
     setDialogOpen(false);
   };
 
+  /**
+   * Handles changes to workout fields.
+   * 
+   * @param {string} field - The field that was changed.
+   * @param {any} value - The new value for the field.
+   */
   const handleWorkoutChange = (field, value) => {
     setEditedWorkout((prev) => ({
       ...prev,
@@ -36,6 +58,13 @@ const WorkoutCard = ({
     }));
   };
 
+  /**
+   * Handles changes to exercise fields within the workout.
+   * 
+   * @param {number} index - The index of the exercise being updated.
+   * @param {string} field - The field that was changed.
+   * @param {any} value - The new value for the field.
+   */
   const handleExerciseChange = (index, field, value) => {
     setEditedWorkout((prev) => {
       const updatedExercises = [...prev.exercises];
@@ -44,6 +73,9 @@ const WorkoutCard = ({
     });
   };
 
+  /**
+   * Saves the edited workout by sending the updated data to the server.
+   */
   const handleSave = async () => {
     try {
       const response = await fetch(`/edit_user_workout/${workout.id}`, {
@@ -75,10 +107,16 @@ const WorkoutCard = ({
     }
   };
 
+  /**
+   * Checks if the workout is marked as a favorite by the current user.
+   */
   useEffect(() => {
     checkIfFavorite();
   }, [workout.id]);
 
+  /**
+   * Fetches the favorite status of the workout for the current user.
+   */
   const checkIfFavorite = async () => {
     if (!user?.email || !workout.id) return;
 
@@ -101,13 +139,12 @@ const WorkoutCard = ({
     }
   };
 
+  /**
+   * Toggles the favorite status of the workout and updates the backend accordingly.
+   */
   const handleFavoriteToggle = async () => {
     if (!user?.email || !workout.id) {
       console.error("Invalid email or workout ID:", user?.email, workout.id);
-      return;
-    }
-    if (!workout?.id) {
-      console.error("Missing workout ID");
       return;
     }
     try {
@@ -143,6 +180,9 @@ const WorkoutCard = ({
     }
   };
 
+  /**
+   * Removes the workout from the favorites list for the current user.
+   */
   const handleRemoveWorkout = async () => {
     try {
       const response = await fetch("/remove_favorite_workout", {

@@ -1,9 +1,18 @@
 import React from "react";
 import { Typography, Button, Box } from "@mui/material";
 
+/**
+ * ProfileInfo component displays the user's profile details, including personal information
+ * like name, email, date of birth, and fitness goals. It also provides an "Edit Profile" button.
+ *
+ * @param {Object} props - The component props.
+ * @param {Object} props.profileData - The user's profile data object.
+ * @param {Function} props.handleEdit - Function to handle the profile edit action when the button is clicked.
+ */
 const ProfileInfo = ({ profileData, handleEdit }) => {
   return (
     <Box>
+      {/* Section header with "Edit Profile" button */}
       <Box
         display="flex"
         justifyContent="space-between"
@@ -21,6 +30,7 @@ const ProfileInfo = ({ profileData, handleEdit }) => {
         </Button>
       </Box>
 
+      {/* Display profile details */}
       <Typography>
         <strong>Name:</strong> {profileData.name}
       </Typography>

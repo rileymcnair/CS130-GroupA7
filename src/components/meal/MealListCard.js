@@ -5,12 +5,24 @@ import CompactMealCard from "./CompactMealCard"; // Make sure this is correctly 
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * MealListCard is a card component that displays a list of meals. It includes a header with an icon and
+ * a button to navigate to the meals page. If meals are provided, they are displayed as CompactMealCard components.
+ * If no meals are available, a message is displayed indicating that no meals have been added for the day.
+ *
+ * @param {Object} props - The component props.
+ * @param {Array} props.meals - An array of meal objects to display in the card.
+ */
 const MealListCard = ({ meals }) => {
   const navigate = useNavigate();
 
+  /**
+   * Handles navigation to the meals page.
+   */
   const handleNavigate = () => {
     navigate("/meals"); // Replace with your target route
   };
+
   return (
     <Paper
       sx={{
@@ -44,7 +56,6 @@ const MealListCard = ({ meals }) => {
           <IconButton
             onClick={handleNavigate}
             sx={{
-              //   backgroundColor: "#f0f0f0", // Optional: Add background styling
               "&:hover": {
                 backgroundColor: "#e0e0e0", // Hover effect
               },

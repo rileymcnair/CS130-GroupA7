@@ -1,9 +1,20 @@
 import React from "react";
 import { TextField, Button, Box } from "@mui/material";
 
+/**
+ * ProfileForm component allows the user to edit their profile details. 
+ * It includes form fields for name, email, date of birth, calorie intake, fitness goal, height, and weight.
+ * Upon submission, the form data is saved by invoking the handleSave function.
+ *
+ * @param {Object} props - The component props.
+ * @param {Object} props.profileData - The user's profile data, used to populate form fields.
+ * @param {Function} props.handleChange - Function to handle input changes in the form.
+ * @param {Function} props.handleSave - Function to save the form data when the form is submitted.
+ */
 const ProfileForm = ({ profileData, handleChange, handleSave }) => {
   return (
     <Box component="form" onSubmit={handleSave} noValidate>
+      {/* Name Field */}
       <TextField
         label="Name"
         name="name"
@@ -13,6 +24,8 @@ const ProfileForm = ({ profileData, handleChange, handleSave }) => {
         margin="normal"
         required
       />
+      
+      {/* Email Field (readonly) */}
       <TextField
         label="Email"
         name="email"
@@ -23,6 +36,8 @@ const ProfileForm = ({ profileData, handleChange, handleSave }) => {
         required
         InputProps={{ readOnly: true }}
       />
+      
+      {/* Date of Birth Field */}
       <TextField
         label="Date of Birth"
         name="date_of_birth"
@@ -33,6 +48,8 @@ const ProfileForm = ({ profileData, handleChange, handleSave }) => {
         type="date"
         InputLabelProps={{ shrink: true }}
       />
+      
+      {/* Avg Calorie Intake Field */}
       <TextField
         label="Avg Calorie Intake"
         name="avg_cal_intake"
@@ -42,6 +59,8 @@ const ProfileForm = ({ profileData, handleChange, handleSave }) => {
         margin="normal"
         type="number"
       />
+      
+      {/* Goal Field */}
       <TextField
         label="Goal"
         name="goal"
@@ -50,6 +69,8 @@ const ProfileForm = ({ profileData, handleChange, handleSave }) => {
         fullWidth
         margin="normal"
       />
+      
+      {/* Height Field */}
       <TextField
         label="Height"
         name="height"
@@ -59,6 +80,8 @@ const ProfileForm = ({ profileData, handleChange, handleSave }) => {
         margin="normal"
         type="number"
       />
+      
+      {/* Weight Field */}
       <TextField
         label="Weight"
         name="weight"
@@ -68,6 +91,8 @@ const ProfileForm = ({ profileData, handleChange, handleSave }) => {
         margin="normal"
         type="number"
       />
+      
+      {/* Save Profile Button */}
       <Button
         type="submit"
         variant="contained"

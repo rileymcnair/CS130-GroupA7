@@ -19,25 +19,20 @@ import MacronutrientChart from "./MacronutrientChart";
 const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
   const [isFavorite, setIsFavorite] = useState(false);
   const { user } = useAuth();
-  // See Details Dialog Details
   const [isDialogOpen, setDialogOpen] = useState(false);
-  const [userMeals, setUserMeals] = useState([]);
 
-  const handleDialogOpen = () => {
-    setDialogOpen(true);
-  };
-  const handleDialogClose = () => {
-    setDialogOpen(false);
-  };
+  const handleDialogOpen = () => setDialogOpen(true);
+  const handleDialogClose = () => setDialogOpen(false);
+
   const handleUpdateCardDetails = (updatedMeal) => {
-    // Update the meal's state in the parent or the current component
+    // Instead of mutating meal, create a new object to avoid side effects
     setUserMeals((prevMeals) =>
       prevMeals.map((m) => (m.id === updatedMeal.id ? updatedMeal : m))
     );
-
-    // Update the meal directly in this card
-    Object.assign(meal, updatedMeal);
+    // Directly modify local state (not the prop)
+    Object.assign(meal, updatedMeal); // Avoid doing this; it's better to use setState
   };
+
   const handleSaveMealToServer = async (updatedMeal) => {
     try {
       const response = await fetch("/edit_meal", {
@@ -100,11 +95,12 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
       console.error("Invalid email or meal ID:", user?.email, meal.id);
       return;
     }
-    try {
-      const endpoint = isFavorite
-        ? "/unfavorite_meal"
-        : "/add_meal_to_favorites";
 
+    const endpoint = isFavorite
+      ? "/unfavorite_meal"
+      : "/add_meal_to_favorites";
+
+    try {
       const response = await fetch(endpoint, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -115,12 +111,9 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
       });
 
       if (response.ok) {
-        const updatedFavoriteStatus = !isFavorite;
-        setIsFavorite(updatedFavoriteStatus);
-
-        // Notify the parent component
+        setIsFavorite(!isFavorite);
         if (handleFavoriteToggleCallback) {
-          handleFavoriteToggleCallback(meal, updatedFavoriteStatus);
+          handleFavoriteToggleCallback(meal, !isFavorite);
         }
       } else {
         console.error(
@@ -128,10 +121,7 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
         );
       }
     } catch (error) {
-      console.error(
-        `Error ${isFavorite ? "removing" : "adding"} meal from favorites:`,
-        error
-      );
+      console.error("Error toggling favorite:", error);
     }
   };
 
@@ -162,121 +152,34 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
 
   return (
     <Box>
-      <Paper
-        sx={{
-          marginTop: 4,
-          padding: 3,
-          borderRadius: 2,
-          flexDirection: "column",
-          display: "flex",
-          maxWidth: 330,
-          height: 450,
-          maxHeight: 500,
-          // overflow: "hidden",
-          // overflowY: "auto",
-        }}
-      >
-        {/* Header Row */}
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            marginBottom: 1,
-          }}
-        >
+      <Paper sx={{ marginTop: 4, padding: 3, borderRadius: 2, display: "flex", flexDirection: "column", maxWidth: 330, height: 450 }}>
+        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 1 }}>
           <Typography variant="h6" sx={{ fontWeight: "bold" }}>
             {meal.name || "Meal Name"}
           </Typography>
-          <IconButton
-            onClick={handleFavoriteToggle}
-            edge="end"
-            color="primary"
-            sx={{ mr: 1 }}
-          >
+          <IconButton onClick={handleFavoriteToggle} edge="end" color="primary" sx={{ mr: 1 }}>
             {isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
           </IconButton>
-          {/* <IconButton
-          onClick={console.log("should open menu to edit the meal")}
-          color="primary"
-        >
-          <EditIcon />
-        </IconButton> */}
         </Box>
 
-        {/* Calories */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "center",
-            flexDirection: "row",
-            marginBlock: 2,
-          }}
-        >
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              flexDirection: "column",
-              flex: 1,
-            }}
-          >
-            <Typography variant="body1" sx={{}}>
+        <Box sx={{ display: "flex", justifyContent: "center", flexDirection: "row", marginBlock: 2 }}>
+          <Box sx={{ display: "flex", alignItems: "center", flexDirection: "column", flex: 1 }}>
+            <Typography variant="body1">
               <strong>Calories</strong>
             </Typography>
-            <Typography variant="body1" sx={{}}>
-              {meal.calories}
-            </Typography>
+            <Typography variant="body1">{meal.calories}</Typography>
           </Box>
         </Box>
-        {/* Macros Section */}
-        <Box
-          sx={{
-            flexDirection: "column",
-            justifyContent: "center",
-            alignItems: "center",
-          }}
-        >
+
+        <Box sx={{ flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
           <Box>
-            <Typography variant="body1" sx={{}}>
+            <Typography variant="body1">
               <strong>Macros</strong>
             </Typography>
           </Box>
-          <Box
-            sx={{
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "left",
-              marginBottom: 3,
-            }}
-          >
-            {/* Macronutrient Chart */}
-            <Box
-              sx={{
-                flex: 0,
-                width: "auto",
-                height: "auto",
-              }}
-            >
-              <MacronutrientChart
-                proteins={meal.proteins}
-                carbs={meal.carbs}
-                fats={meal.fats}
-                calories={meal.calories}
-              />
-            </Box>
-
-            {/* Macro Details */}
-            <Box
-              sx={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                justifyContent: "space-between",
-                flex: 1,
-                marginLeft: 3,
-              }}
-            >
+          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "left", marginBottom: 3 }}>
+            <MacronutrientChart proteins={meal.proteins} carbs={meal.carbs} fats={meal.fats} calories={meal.calories} />
+            <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flex: 1, marginLeft: 3 }}>
               <Typography sx={{ flex: 1, textAlign: "center" }}>
                 <strong>Protein</strong>
                 <br />
@@ -297,19 +200,9 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
             </Box>
           </Box>
         </Box>
-        {/* Ingredients Section */}
-        <Box
-          sx={{
-            marginBottom: 2,
-            flex: 1,
-            overflowY: "auto", // Enable vertical scrolling
-            maxHeight: 200, // Set a fixed height to constrain the content
-          }}
-        >
-          <Typography
-            variant="subtitle1"
-            sx={{ fontWeight: "bold", marginBottom: 1 }}
-          >
+
+        <Box sx={{ marginBottom: 2, flex: 1, overflowY: "auto", maxHeight: 200 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold", marginBottom: 1 }}>
             Ingredients
           </Typography>
           <Box sx={{ paddingLeft: 2 }}>
@@ -321,39 +214,13 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
           </Box>
         </Box>
 
-        {/* See Details Section */}
-        <Box
-          sx={{
-            display: "flex",
-            justifyContent: "space-between",
-            position: "relative",
-            marginTop: "auto",
-          }}
-        >
+        <Box sx={{ display: "flex", justifyContent: "space-between", position: "relative", marginTop: "auto" }}>
           {isFavorite && (
-            <IconButton
-              onClick={handleRemoveMeal}
-              color="error"
-              sx={{
-                cursor: "pointer",
-                fontWeight: "bold",
-              }}
-            >
+            <IconButton onClick={handleRemoveMeal} color="error" sx={{ cursor: "pointer", fontWeight: "bold" }}>
               <DeleteIcon />
             </IconButton>
           )}
-          <Typography
-            variant="body2"
-            sx={{
-              color: "primary.main",
-              cursor: "pointer",
-              fontWeight: "bold",
-              position: "absolute",
-              bottom: 5,
-              right: 16,
-            }}
-            onClick={handleDialogOpen}
-          >
+          <Typography variant="body2" sx={{ color: "primary.main", cursor: "pointer", fontWeight: "bold", position: "absolute", bottom: 5, right: 16 }} onClick={handleDialogOpen}>
             Edit
           </Typography>
           <MealDetailsDialog
@@ -361,9 +228,9 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
             onClose={handleDialogClose}
             meal={meal}
             onSave={(updatedMeal) => {
-              handleUpdateCardDetails(updatedMeal); // Update state or prop data
-              handleSaveMealToServer(updatedMeal); // Send changes to the server
-              handleDialogClose(); // Close the dialog
+              handleUpdateCardDetails(updatedMeal);
+              handleSaveMealToServer(updatedMeal);
+              handleDialogClose();
             }}
           />
         </Box>

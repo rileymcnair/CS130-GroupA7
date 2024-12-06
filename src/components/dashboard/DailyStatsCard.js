@@ -48,15 +48,16 @@ const StyledLinearProgress = styled(LinearProgress)(({ workoutValue }) => ({
 }));
 
 const DailyStatsCard = ({
-  meals, // list of all the meals for that day
-  workouts, // list of all the workouts for that day
-  userWeight, // weight may be undefined
+  meals,
+  workouts,
+  userWeight,
   expectedDailyCalories,
   date,
 }) => {
-  // State to manage weight
   const [weight, setWeight] = useState(null); // Initialize as null (no data)
   const [isEditingWeight, setIsEditingWeight] = useState(false); // Edit mode toggle
+  const [loading, setLoading] = useState(false); // Track loading state
+  const [error, setError] = useState(null); // Track error state
 
   // Set weight based on userWeight prop when component loads
   useEffect(() => {
@@ -65,23 +66,19 @@ const DailyStatsCard = ({
     }
   }, [userWeight]);
 
+  // Helper function to calculate total values
+  const calculateTotal = (arr, key) => {
+    return (Array.isArray(arr) ? arr : []).reduce(
+      (acc, item) => acc + (item[key] || 0),
+      0
+    );
+  };
+
   // Calculate Daily Stats
-  const totalCalories = (Array.isArray(meals) ? meals : []).reduce(
-    (acc, meal) => acc + (meal.calories || 0),
-    0,
-  );
-  const totalProtein = (Array.isArray(meals) ? meals : []).reduce(
-    (sum, meal) => sum + (meal.proteins || 0),
-    0,
-  );
-  const totalCarbs = (Array.isArray(meals) ? meals : []).reduce(
-    (sum, meal) => sum + (meal.carbs || 0),
-    0,
-  );
-  const totalFats = (Array.isArray(meals) ? meals : []).reduce(
-    (sum, meal) => sum + (meal.fats || 0),
-    0,
-  );
+  const totalCalories = calculateTotal(meals, "calories");
+  const totalProtein = calculateTotal(meals, "proteins");
+  const totalCarbs = calculateTotal(meals, "carbs");
+  const totalFats = calculateTotal(meals, "fats");
 
   const totalWorkoutCalories = (Array.isArray(workouts) ? workouts : []).reduce(
     (sum, workout) =>
@@ -90,54 +87,55 @@ const DailyStatsCard = ({
         ? workout.exercises.reduce(
             (exerciseSum, exercise) =>
               exerciseSum + (exercise.avg_calories_burned || 0),
-            0,
+            0
           )
         : 0),
-    0,
+    0
   );
 
-  const totalWorkoutTime = (Array.isArray(workouts) ? workouts : []).reduce(
-    (sum, workout) => sum + (workout.total_minutes || 0),
-    0,
-  );
+  const totalWorkoutTime = calculateTotal(workouts, "total_minutes");
 
   const parsedDate = new Date(date).toISOString().split("T")[0];
+
   const handleSaveWeight = async (weight, parsedDate) => {
     try {
       const parsedWeight = parseInt(weight, 10);
-      if (isNaN(parsedWeight)) {
-        console.error("Invalid weight value:", weight);
+      if (isNaN(parsedWeight) || parsedWeight <= 0) {
+        setError("Please enter a valid weight.");
         return;
       }
+      setLoading(true);
+      setError(null);
+
       const response = await fetch("/update_weight_on_day", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify({ weight: weight, date: parsedDate }), // Send the weight to the server
+        body: JSON.stringify({ weight: weight, date: parsedDate }),
       });
 
       if (response.ok) {
         const result = await response.json();
-        // console.log('Weight saved successfully:', result);
+        setIsEditingWeight(false); // Exit edit mode
       } else {
-        console.error("Failed to save weight:", response.statusText);
+        setError("Failed to save weight.");
       }
     } catch (error) {
-      console.error("Error saving weight:", error);
+      setError("Error saving weight: " + error.message);
     } finally {
-      setIsEditingWeight(false); // Exit edit mode regardless of success or failure
+      setLoading(false);
     }
   };
 
   // Calculate percentage of total calories consumed vs. expected
   const caloriePercentage = Math.min(
     (totalCalories / expectedDailyCalories) * 100,
-    100,
+    100
   );
   const workoutPercentage = Math.min(
     (totalWorkoutCalories / expectedDailyCalories) * 100,
-    100,
+    100
   );
 
   // Bar graph data
@@ -151,6 +149,7 @@ const DailyStatsCard = ({
       },
     ],
   };
+
   const macroOptions = {
     responsive: true,
     maintainAspectRatio: false,
@@ -180,25 +179,9 @@ const DailyStatsCard = ({
   };
 
   return (
-    <Card
-      sx={{
-        borderRadius: 2,
-        boxShadow: 2,
-        padding: 2,
-        width: "auto",
-        minHeight: 250,
-      }}
-    >
+    <Card sx={{ borderRadius: 2, boxShadow: 2, padding: 2 }}>
       {/* Card Title */}
-      <Box
-        sx={{
-          display: "flex",
-          height: "auto",
-          justifyContent: "flex-start",
-          alignItems: "center",
-          gap: 1,
-        }}
-      >
+      <Box sx={{ display: "flex", gap: 1 }}>
         <QueryStatsIcon />
         <Typography variant="h6" sx={{ fontWeight: "bold" }}>
           Daily Stats
@@ -208,207 +191,98 @@ const DailyStatsCard = ({
       <Divider sx={{ marginBottom: 2 }} />
 
       {/* Card Body */}
-      <Box
-        sx={{
-          display: "flex",
-          flexWrap: "wrap",
-          maxHeight: "auto",
-          gap: 2,
-        }}
-      >
+      <Box sx={{ display: "flex", flexWrap: "wrap", gap: 2 }}>
         {/* Bar Graph */}
-        <Paper
-          sx={{
-            padding: 2,
-            flex: "1", // Fill half the width minus the gap
-            minWidth: "300",
-          }}
-        >
-          <Box
-            sx={{
-              maxWidth: 300,
-            }}
-          >
-            {/* Total Nutrition */}
-            <Box sx={{ marginBottom: 0 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                Nutrition
-              </Typography>
-              <Divider sx={{ marginBottom: 0 }} />
-
-              <Box sx={{ height: 150, mt: 3 }}>
-                <Bar data={macroData} options={macroOptions} />
-              </Box>
-              <Box
-                sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}
-              >
-                <Typography variant="body1">
-                  <strong>Calories:</strong> {totalCalories}
-                </Typography>
-                <Typography variant="body1">
-                  <strong>Protein:</strong> {totalProtein}g
-                </Typography>
-              </Box>
-              <Box
-                sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}
-              >
-                <Typography variant="body1">
-                  <strong>Carbs:</strong> {totalCarbs}g
-                </Typography>
-                <Typography variant="body1">
-                  <strong>Fats:</strong> {totalFats}g
-                </Typography>
-              </Box>
-            </Box>
+        <Paper sx={{ padding: 2, flex: "1", minWidth: 300 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+            Nutrition
+          </Typography>
+          <Divider sx={{ marginBottom: 2 }} />
+          <Box sx={{ height: 150, mt: 3 }}>
+            <Bar data={macroData} options={macroOptions} />
+          </Box>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
+            <Typography variant="body1">
+              <strong>Calories:</strong> {totalCalories}
+            </Typography>
+            <Typography variant="body1">
+              <strong>Protein:</strong> {totalProtein}g
+            </Typography>
+          </Box>
+          <Box sx={{ display: "flex", justifyContent: "space-between", mt: 1 }}>
+            <Typography variant="body1">
+              <strong>Carbs:</strong> {totalCarbs}g
+            </Typography>
+            <Typography variant="body1">
+              <strong>Fats:</strong> {totalFats}g
+            </Typography>
           </Box>
         </Paper>
 
         {/* Workout Calories and Time */}
-        <Paper
-          sx={{
-            padding: 2,
-            flex: "1", // Fill half the width minus the gap
-            minWidth: "200",
-          }}
-        >
-          <Box>
-            <Box sx={{ marginBottom: 3 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                Workouts
-              </Typography>
-              <Divider sx={{ marginBottom: 2 }} />
+        <Paper sx={{ padding: 2, flex: "1", minWidth: 200 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
+            Workouts
+          </Typography>
+          <Divider sx={{ marginBottom: 2 }} />
+          <Typography variant="body1">
+            <strong>Total Calories Burned:</strong> {totalWorkoutCalories}
+          </Typography>
+          <Typography variant="body1">
+            <strong>Total Workout Time:</strong> {totalWorkoutTime} min
+          </Typography>
 
-              <Typography variant="body1" sx={{ mt: 1 }}>
-                <strong>Total Calories Burned:</strong> {totalWorkoutCalories}
-              </Typography>
-              <Typography variant="body1" sx={{ mt: 1 }}>
-                <strong>Total Workout Time:</strong> {totalWorkoutTime} min
-              </Typography>
-            </Box>
-
-            {/* Weight Section */}
-            <Box sx={{ marginBottom: 3 }}>
-              {/* Weight Heading */}
-              <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-                Weight
-              </Typography>
-              <Divider sx={{ marginBottom: 2 }} />
-
-              {/* Weight Card Body */}
-              {isEditingWeight ? (
-                <Box
-                  sx={{
-                    display: "flex",
-                    gap: 1,
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    width: "100%",
-                  }}
-                >
-                  <TextField
-                    label="Enter your weight (lb)"
-                    type="number"
-                    value={weight || ""}
-                    onChange={(e) => setWeight(e.target.value)}
-                    size="small"
-                  />
-                  <IconButton
-                    color="#000000"
-                    onClick={() => handleSaveWeight(weight, parsedDate)}
-                    title="Save Weight"
-                  >
-                    <SaveAsIcon fontSize="small" />
-                  </IconButton>
-                </Box>
-              ) : (
-                <Box
-                  sx={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                  }}
-                >
-                  <Typography variant="body1">
-                    {weight !== null &&
-                    weight !== undefined &&
-                    weight.length !== 0
-                      ? `${weight} lb`
-                      : "No weight data available"}
-                  </Typography>
-                  <IconButton
-                    color="#000000"
-                    onClick={() => setIsEditingWeight(true)}
-                    title="Edit Weight"
-                  >
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                </Box>
-              )}
-            </Box>
-          </Box>
-        </Paper>
-
-        {/* Expected Daily Calories */}
-        <Paper
-          sx={{
-            flex: "2",
-            padding: 2,
-            minWidth: 400,
-            width: "100%", // Make it fill the container
-            maxWidth: "100%", // Ensure it doesn’t exceed the container's width
-            boxSizing: "border-box", // Include padding in width calculations
-          }}
-        >
-          <Box>
+          {/* Weight Section */}
+          <Box sx={{ marginTop: 3 }}>
             <Typography variant="subtitle1" sx={{ fontWeight: "bold" }}>
-              Expected Daily Calories
+              Weight
             </Typography>
-            <Divider sx={{ marginBottom: 0 }} />
-
-            <Typography variant="body1" sx={{ mt: 1, marginBottom: 1 }}>
-              {totalCalories} / {expectedDailyCalories} kcal
-            </Typography>
-
-            {/* Linear Progress Bar with Dual Progress */}
-            <StyledLinearProgress
-              variant="determinate"
-              value={caloriePercentage}
-              workoutValue={100 - workoutPercentage}
-            />
-            {/* Legend */}
-            <Box
-              sx={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginTop: 1,
-              }}
-            >
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Box
-                  sx={{
-                    width: 16,
-                    height: 16,
-                    backgroundColor: "#3f51b5",
-                    borderRadius: "50%",
-                  }}
-                ></Box>
-                <Typography variant="body2">Calories Consumed</Typography>
+            <Divider sx={{ marginBottom: 2 }} />
+            {isEditingWeight ? (
+              <Box sx={{ display: "flex", gap: 1 }}>
+                <TextField
+                  label="Enter your weight (lb)"
+                  type="number"
+                  value={weight || ""}
+                  onChange={(e) => setWeight(e.target.value)}
+                  fullWidth
+                  variant="outlined"
+                />
+                <IconButton
+                  color="primary"
+                  onClick={() => handleSaveWeight(weight, parsedDate)}
+                  disabled={loading}
+                >
+                  <SaveAsIcon />
+                </IconButton>
               </Box>
-              <Box sx={{ display: "flex", alignItems: "center", gap: 1 }}>
-                <Box
-                  sx={{
-                    width: 16,
-                    height: 16,
-                    backgroundColor: "#ff9800",
-                    borderRadius: "50%",
-                  }}
-                ></Box>
-                <Typography variant="body2">Workout Calories</Typography>
-              </Box>
-            </Box>
+            ) : (
+              <>
+                <Typography variant="body1">Weight: {weight} lb</Typography>
+                <IconButton
+                  color="primary"
+                  onClick={() => setIsEditingWeight(true)}
+                >
+                  <EditIcon />
+                </IconButton>
+              </>
+            )}
+            {loading && <Typography variant="body2">Saving...</Typography>}
+            {error && <Typography variant="body2" color="error">{error}</Typography>}
           </Box>
         </Paper>
+      </Box>
+
+      {/* Progress Bar for Calories */}
+      <Box sx={{ mt: 3 }}>
+        <Typography variant="body2" sx={{ fontWeight: "bold" }}>
+          Daily Progress
+        </Typography>
+        <StyledLinearProgress
+          variant="determinate"
+          value={caloriePercentage}
+          workoutValue={workoutPercentage}
+        />
       </Box>
     </Card>
   );

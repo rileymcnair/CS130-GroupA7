@@ -10,11 +10,17 @@ import { useAuth } from '../context/AuthContext';
 
 const drawerWidth = 200;
 
+/**
+ * Sidebar component that displays navigation options and a logout button.
+ * The sidebar is displayed permanently and contains links to various pages like
+ * Dashboard, Workouts, Meals, and User profile, with active page highlighting.
+ */
 const Sidebar = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { logout } = useAuth();
 
+  // Array of menu items, each containing text, icon, and path
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/home' },
     { text: 'Workouts', icon: <FitnessCenterIcon />, path: '/workouts' },
@@ -22,12 +28,18 @@ const Sidebar = () => {
     { text: 'User', icon: <PersonIcon />, path: '/profile' },
   ];
 
+  /**
+   * Handles navigation for the sidebar items. If the logout button is clicked,
+   * the user is logged out and redirected to the login page.
+   * 
+   * @param {string} path - The path to navigate to or 'logout' if logging out.
+   */
   const handleNavigate = (path) => {
     if (path === 'logout') {
-      logout();
-      navigate('/login');
+      logout(); // Log the user out
+      navigate('/login'); // Redirect to login page after logout
     } else {
-      navigate(path);
+      navigate(path); // Navigate to the desired page
     }
   };
 
@@ -63,10 +75,10 @@ const Sidebar = () => {
             <ListItemIcon sx={{ color: '#4caf50' }}>{item.icon}</ListItemIcon>
             <ListItemText 
               primary={item.text} 
-
             />
           </ListItem>
         ))}
+        {/* Logout item */}
         <ListItem 
           button 
           onClick={() => handleNavigate('logout')}

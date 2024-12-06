@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: context/AuthContext.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: context/AuthContext.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { createContext, useContext, useState, useEffect } from 'react';
+import { auth } from '../firebaseConfig';
+import { 
+  signInWithEmailAndPassword, 
+  createUserWithEmailAndPassword, 
+  signOut, 
+  onAuthStateChanged, 
+  GoogleAuthProvider, 
+  signInWithPopup 
+} from 'firebase/auth';
+
+/**
+ * Context to provide authentication-related data and functions across the app.
+ * This includes user state, login, register, logout, and Google login functionality.
+ */
+const AuthContext = createContext();
+
+/**
+ * The AuthProvider component wraps the app and provides authentication context.
+ * It listens for authentication state changes and manages user state.
+ * 
+ * @param {React.ReactNode} children - The child components to be wrapped by the provider.
+ * @returns {React.ReactNode} - The children components wrapped inside AuthContext.Provider.
+ */
+export function AuthProvider({ children }) {
+  const [user, setUser] = useState(null);  // State to store the current user
+  const [loading, setLoading] = useState(true); // State to indicate loading status
+
+  // Set up listener for authentication state changes
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
+      setUser(currentUser); // Update user state when authentication status changes
+      setLoading(false); // Set loading to false after authentication state is determined
+    });
+
+    // Clean up the listener on component unmount
+    return () => unsubscribe();
+  }, []);
+
+  /**
+   * Logs the user in using email and password.
+   * 
+   * @param {string} email - The user's email address.
+   * @param {string} password - The user's password.
+   * @returns {Promise} - A promise representing the authentication result.
+   */
+  const login = (email, password) => {
+    return signInWithEmailAndPassword(auth, email, password);
+  };
+
+  /**
+   * Registers a new user using email and password.
+   * 
+   * @param {string} email - The user's email address.
+   * @param {string} password - The user's password.
+   * @returns {Promise} - A promise representing the registration result.
+   */
+  const register = (email, password) => {
+    return createUserWithEmailAndPassword(auth, email, password);
+  };
+
+  /**
+   * Logs out the current user.
+   * 
+   * @returns {Promise} - A promise representing the logout result.
+   */
+  const logout = () => {
+    return signOut(auth);
+  };
+
+  // Google authentication provider setup
+  const googleProvider = new GoogleAuthProvider();
+
+  /**
+   * Logs the user in using Google authentication.
+   * 
+   * @returns {Promise} - A promise representing the Google sign-in result.
+   */
+  const loginWithGoogle = () => {
+    return signInWithPopup(auth, googleProvider);
+  };
+
+  // Context value containing authentication functions and user state
+  const value = {
+    user, // The current user object
+    login, // Function to log in a user
+    loginWithGoogle, // Function to log in with Google
+    register, // Function to register a new user
+    logout, // Function to log out the current user
+    isAuthenticated: !!user, // Boolean indicating if the user is authenticated
+  };
+
+  return (
+    // Provide authentication data to child components
+    &lt;AuthContext.Provider value={value}>
+      {/* Only render children if not loading */}
+      {!loading &amp;&amp; children}
+    &lt;/AuthContext.Provider>
+  );
+}
+
+/**
+ * Custom hook to access the authentication context.
+ * 
+ * @returns {Object} - The authentication context value (user, login, register, etc.).
+ */
+export function useAuth() {
+  return useContext(AuthContext);
+}
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AuthContext">AuthContext</a></li><li><a href="global.html#AuthProvider">AuthProvider</a></li><li><a href="global.html#Dashboard">Dashboard</a></li><li><a href="global.html#Home">Home</a></li><li><a href="global.html#Landing">Landing</a></li><li><a href="global.html#Login">Login</a></li><li><a href="global.html#Logout">Logout</a></li><li><a href="global.html#Meal">Meal</a></li><li><a href="global.html#Profile">Profile</a></li><li><a href="global.html#Progress">Progress</a></li><li><a href="global.html#Register">Register</a></li><li><a href="global.html#Sidebar">Sidebar</a></li><li><a href="global.html#WeeklySummaryEmail">WeeklySummaryEmail</a></li><li><a href="global.html#Workout">Workout</a></li><li><a href="global.html#useAuth">useAuth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Fri Dec 06 2024 12:01:34 GMT-0800 (Pacific Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

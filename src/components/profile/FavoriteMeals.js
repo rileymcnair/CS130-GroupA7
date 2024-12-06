@@ -11,6 +11,18 @@ import {
 } from "@mui/material";
 import { Delete as DeleteIcon, Add as AddIcon } from "@mui/icons-material";
 
+/**
+ * FavoriteMeals component displays a list of the user's favorite meals.
+ * Each meal in the list shows its details such as name, calories, carbs, fats,
+ * proteins, and ingredients. Users can also remove meals from their favorites
+ * using the delete button.
+ *
+ * @param {Object} props - The component props.
+ * @param {Array} props.mealDetails - An array of meal objects, each containing details like name, calories, carbs, fats, proteins, and ingredients.
+ * @param {Object} props.profileData - The user's profile data, which includes a list of favorited meals.
+ * @param {Function} props.handleMealDialogOpen - Function to open the dialog to add a new meal.
+ * @param {Function} props.removeFavorite - Function to remove a meal from the user's favorites.
+ */
 const FavoriteMeals = ({
   mealDetails,
   profileData,
@@ -19,6 +31,7 @@ const FavoriteMeals = ({
 }) => {
   return (
     <Box>
+      {/* Header with title and button to add meal */}
       <Box
         display="flex"
         justifyContent="space-between"
@@ -35,16 +48,19 @@ const FavoriteMeals = ({
         </Button>
       </Box>
 
+      {/* Paper container for the list of meals */}
       <Paper
         sx={{ maxHeight: 900, overflow: "auto", bgcolor: "background.paper" }}
       >
         <List>
+          {/* Map over mealDetails to render each meal */}
           {mealDetails.map(
             (meal, index) =>
               meal && (
                 <React.Fragment key={profileData.favorited_meals[index]}>
                   <ListItem
                     secondaryAction={
+                      // Delete button to remove the meal from favorites
                       <IconButton
                         onClick={() =>
                           removeFavorite(
@@ -60,6 +76,7 @@ const FavoriteMeals = ({
                     }
                   >
                     <Box sx={{ width: "100%" }}>
+                      {/* Meal details */}
                       <Typography>
                         <strong>Name:</strong> {meal?.name || ""}
                       </Typography>
@@ -81,6 +98,7 @@ const FavoriteMeals = ({
                       </Typography>
                     </Box>
                   </ListItem>
+                  {/* Divider between meals */}
                   {index < mealDetails.length - 1 && <Divider />}
                 </React.Fragment>
               ),

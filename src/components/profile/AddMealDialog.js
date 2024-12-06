@@ -8,6 +8,18 @@ import {
   Button,
 } from "@mui/material";
 
+/**
+ * AddMealDialog is a dialog component that allows users to add a new favorite meal.
+ * It includes input fields for the meal's name, nutritional information (calories, carbs, fats, proteins),
+ * type (e.g., breakfast, lunch), and ingredients. The user can submit or cancel the addition of the meal.
+ *
+ * @param {Object} props - The component props.
+ * @param {boolean} props.open - Controls whether the dialog is open or closed.
+ * @param {Function} props.handleClose - Function to close the dialog.
+ * @param {Object} props.newMeal - The current state of the new meal being added.
+ * @param {Function} props.setNewMeal - Function to update the newMeal state.
+ * @param {Function} props.handleSubmit - Function to handle the submission of the new meal.
+ */
 const AddMealDialog = ({
   open,
   handleClose,
@@ -19,6 +31,7 @@ const AddMealDialog = ({
     <Dialog open={open} onClose={handleClose}>
       <DialogTitle>Add Favorite Meal</DialogTitle>
       <DialogContent>
+        {/* Meal Name */}
         <TextField
           label="Name"
           name="name"
@@ -27,6 +40,8 @@ const AddMealDialog = ({
           fullWidth
           margin="normal"
         />
+        
+        {/* Calories */}
         <TextField
           label="Calories"
           name="calories"
@@ -35,6 +50,8 @@ const AddMealDialog = ({
           fullWidth
           margin="normal"
         />
+        
+        {/* Carbs (g) */}
         <TextField
           label="Carbs (g)"
           name="carbs"
@@ -43,6 +60,8 @@ const AddMealDialog = ({
           fullWidth
           margin="normal"
         />
+        
+        {/* Fats (g) */}
         <TextField
           label="Fats (g)"
           name="fats"
@@ -51,6 +70,8 @@ const AddMealDialog = ({
           fullWidth
           margin="normal"
         />
+        
+        {/* Proteins (g) */}
         <TextField
           label="Proteins (g)"
           name="proteins"
@@ -59,6 +80,8 @@ const AddMealDialog = ({
           fullWidth
           margin="normal"
         />
+        
+        {/* Meal Type (e.g., Breakfast, Lunch) */}
         <TextField
           label="Type"
           name="type"
@@ -67,6 +90,8 @@ const AddMealDialog = ({
           fullWidth
           margin="normal"
         />
+        
+        {/* Ingredients (comma-separated) */}
         <TextField
           label="Ingredients (comma-separated)"
           name="ingredients"

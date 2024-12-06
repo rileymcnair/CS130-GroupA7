@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: pages/Profile.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: pages/Profile.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { Container, Typography, Card, CardContent, Box } from "@mui/material";
+
+import ProfileForm from "../components/profile/ProfileForm";
+import ProfileInfo from "../components/profile/ProfileInfo";
+import FavoriteMeals from "../components/profile/FavoriteMeals";
+import FavoriteWorkouts from "../components/profile/FavoriteWorkouts";
+import AddMealDialog from "../components/profile/AddMealDialog";
+import AddWorkoutDialog from "../components/profile/AddWorkoutDialog";
+
+/**
+ * Profile component allows the user to view and edit their profile,
+ * manage favorite meals and workouts, and submit new meals/workouts.
+ */
+function Profile() {
+  const { user } = useAuth();
+
+  // State for profile data and editing status
+  const [profileData, setProfileData] = useState({
+    name: "",
+    email: "",
+    date_of_birth: "",
+    avg_cal_intake: "",
+    goal: "",
+    height: "",
+    weight: "",
+    favorited_meals: [],
+    favorited_workouts: [],
+  });
+  const [isEditing, setIsEditing] = useState(false);
+
+  // State for handling dialog visibility and meal/workout details
+  const [mealDetails, setMealDetails] = useState([]);
+  const [workoutDetails, setWorkoutDetails] = useState([]);
+  const [mealDialogOpen, setMealDialogOpen] = useState(false);
+  const [workoutDialogOpen, setWorkoutDialogOpen] = useState(false);
+
+  // State for new meal and workout inputs
+  const [newMeal, setNewMeal] = useState({
+    name: "",
+    calories: "",
+    carbs: "",
+    fats: "",
+    proteins: "",
+    type: "",
+    ingredients: "",
+  });
+  const [newWorkout, setNewWorkout] = useState({
+    name: "",
+    total_minutes: "",
+    body_part_focus: "",
+    exercises: [
+      {
+        description: "",
+        avg_calories_burned: "",
+        body_parts: "",
+        name: "",
+        reps: "",
+        sets: "",
+        weight: "",
+      },
+    ],
+  });
+
+  /**
+   * Handles profile data input changes.
+   * @param {object} e - The event object from the form input change.
+   */
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setProfileData((prevData) => ({
+      ...prevData,
+      [name]: value,
+    }));
+  };
+
+  // Profile save handler
+  const handleSave = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await fetch("/save_profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(profileData),
+      });
+      if (response.ok) setIsEditing(false);
+    } catch (error) {
+      console.error("Error saving profile:", error);
+    }
+  };
+
+  // Meal and Workout dialog handlers
+  const handleMealDialogOpen = () => setMealDialogOpen(true);
+  const handleMealDialogClose = () => {
+    setMealDialogOpen(false);
+    setNewMeal({
+      name: "",
+      calories: "",
+      carbs: "",
+      fats: "",
+      proteins: "",
+      type: "",
+      ingredients: "",
+    });
+  };
+
+  const handleWorkoutDialogOpen = () => setWorkoutDialogOpen(true);
+  const handleWorkoutDialogClose = () => {
+    setWorkoutDialogOpen(false);
+    setNewWorkout({
+      name: "",
+      total_minutes: "",
+      body_part_focus: "",
+      exercises: [
+        {
+          description: "",
+          avg_calories_burned: "",
+          body_parts: "",
+          name: "",
+          reps: "",
+          sets: "",
+          weight: "",
+        },
+      ],
+    });
+  };
+
+  /**
+   * Handles changes to workout exercises.
+   * @param {number} index - The index of the exercise to update.
+   * @param {string} field - The field to update within the exercise.
+   * @param {string} value - The new value for the field.
+   */
+  const handleExerciseChange = (index, field, value) => {
+    setNewWorkout((prev) => ({
+      ...prev,
+      exercises: prev.exercises.map((exercise, i) =>
+        i === index ? { ...exercise, [field]: value } : exercise,
+      ),
+    }));
+  };
+
+  /**
+   * Adds a new exercise to the workout.
+   */
+  const handleAddExercise = () => {
+    setNewWorkout((prev) => ({
+      ...prev,
+      exercises: [
+        ...prev.exercises,
+        {
+          description: "",
+          avg_calories_burned: "",
+          body_parts: "",
+          name: "",
+          reps: "",
+          sets: "",
+          weight: "",
+        },
+      ],
+    }));
+  };
+
+  // Submit handlers for meal and workout
+  const handleMealSubmit = async () => {
+    const mealData = {
+      email: user.email,
+      name: newMeal.name,
+      calories: Number(newMeal.calories),
+      carbs: Number(newMeal.carbs),
+      fats: Number(newMeal.fats),
+      proteins: Number(newMeal.proteins),
+      type: newMeal.type,
+      ingredients: newMeal.ingredients.split(",").map((item) => item.trim()),
+    };
+
+    try {
+      const response = await fetch("/create_favorite_meal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(mealData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setProfileData((prevData) => ({
+          ...prevData,
+          favorited_meals: [...prevData.favorited_meals, data.meal_id],
+        }));
+        handleMealDialogClose();
+      }
+    } catch (error) {
+      console.error("Error creating favorite meal:", error);
+    }
+  };
+
+  const handleWorkoutSubmit = async () => {
+    const workoutData = {
+      email: user.email,
+      name: newWorkout.name,
+      body_part_focus: newWorkout.body_part_focus,
+      total_minutes: Number(newWorkout.total_minutes),
+      exercises: newWorkout.exercises,
+    };
+
+    try {
+      const response = await fetch("/create_favorite_workout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(workoutData),
+      });
+
+      if (response.ok) {
+        const data = await response.json();
+        setProfileData((prevData) => ({
+          ...prevData,
+          favorited_workouts: [...prevData.favorited_workouts, data.workout_id],
+        }));
+        handleWorkoutDialogClose();
+      }
+    } catch (error) {
+      console.error("Error creating favorite workout:", error);
+    }
+  };
+
+  /**
+   * Fetches the user's profile data.
+   */
+  const fetchProfile = async () => {
+    try {
+      const response = await fetch(`/get_profile?email=${user.email}`);
+      if (response.ok) {
+        const data = await response.json();
+        setProfileData({
+          ...data,
+          favorited_meals: data.favorited_meals || [],
+          favorited_workouts: data.favorited_workouts || [],
+        });
+        setIsEditing(false);
+      } else if (response.status === 404) {
+        setIsEditing(true);
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    }
+  };
+
+  /**
+   * Removes a meal or workout from the favorites.
+   * @param {string} type - The type of item ('meal' or 'workout').
+   * @param {string} id - The ID of the item to remove.
+   */
+  const removeFavorite = async (type, id) => {
+    const endpoint =
+      type === "meal" ? "/remove_favorite_meal" : "/remove_favorite_workout";
+    try {
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email: user.email, id }),
+      });
+
+      if (response.ok) {
+        setProfileData((prevData) => {
+          const updatedList = prevData[
+            type === "meal" ? "favorited_meals" : "favorited_workouts"
+          ].filter((item) => item !== id);
+          return {
+            ...prevData,
+            [type === "meal" ? "favorited_meals" : "favorited_workouts"]:
+              updatedList,
+          };
+        });
+
+        if (type === "meal") {
+          setMealDetails((prevDetails) =>
+            prevDetails.filter((meal) => meal &amp;&amp; meal.id !== id),
+          );
+        } else {
+          setWorkoutDetails((prevDetails) =>
+            prevDetails.filter((workout) => workout &amp;&amp; workout.id !== id),
+          );
+        }
+      }
+    } catch (error) {
+      console.error(`Error removing favorite ${type}:`, error);
+    }
+  };
+
+  // Fetch user profile on component mount
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
+
+  // Fetch meal details when favorited meals change
+  useEffect(() => {
+    const fetchMealDetails = async (mealId) => {
+      const response = await fetch(`/get_meal_details?mealId=${mealId}`);
+      return response.ok ? response.json() : null;
+    };
+
+    if (profileData.favorited_meals.length) {
+      Promise.all(profileData.favorited_meals.map(fetchMealDetails))
+        .then(setMealDetails)
+        .catch(console.error);
+    }
+  }, [profileData.favorited_meals]);
+
+  // Fetch workout details when favorited workouts change
+  useEffect(() => {
+    const fetchWorkoutDetails = async (workoutId) => {
+      const response = await fetch(`/get_workout_details?workoutId=${workoutId}`);
+      return response.ok ? response.json() : null;
+    };
+
+    if (profileData.favorited_workouts.length) {
+      Promise.all(profileData.favorited_workouts.map(fetchWorkoutDetails))
+        .then(setWorkoutDetails)
+        .catch(console.error);
+    }
+  }, [profileData.favorited_workouts]);
+
+  return (
+    &lt;Container>
+      &lt;Typography variant="h4" gutterBottom>
+        Profile Page
+      &lt;/Typography>
+      &lt;Card>
+        &lt;CardContent>
+          {!isEditing ? (
+            &lt;ProfileInfo profileData={profileData} onEdit={() => setIsEditing(true)} />
+          ) : (
+            &lt;ProfileForm
+              profileData={profileData}
+              onChange={handleChange}
+              onSave={handleSave}
+            />
+          )}
+        &lt;/CardContent>
+      &lt;/Card>
+
+      &lt;Box>
+        &lt;FavoriteMeals meals={mealDetails} onRemove={removeFavorite} />
+        &lt;FavoriteWorkouts workouts={workoutDetails} onRemove={removeFavorite} />
+      &lt;/Box>
+
+      &lt;AddMealDialog
+        open={mealDialogOpen}
+        onClose={handleMealDialogClose}
+        onSubmit={handleMealSubmit}
+        newMeal={newMeal}
+        setNewMeal={setNewMeal}
+      />
+
+      &lt;AddWorkoutDialog
+        open={workoutDialogOpen}
+        onClose={handleWorkoutDialogClose}
+        onSubmit={handleWorkoutSubmit}
+        newWorkout={newWorkout}
+        setNewWorkout={setNewWorkout}
+        handleExerciseChange={handleExerciseChange}
+        handleAddExercise={handleAddExercise}
+      />
+    &lt;/Container>
+  );
+}
+
+export default Profile;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AuthContext">AuthContext</a></li><li><a href="global.html#AuthProvider">AuthProvider</a></li><li><a href="global.html#Dashboard">Dashboard</a></li><li><a href="global.html#Home">Home</a></li><li><a href="global.html#Landing">Landing</a></li><li><a href="global.html#Login">Login</a></li><li><a href="global.html#Logout">Logout</a></li><li><a href="global.html#Meal">Meal</a></li><li><a href="global.html#Profile">Profile</a></li><li><a href="global.html#Progress">Progress</a></li><li><a href="global.html#Register">Register</a></li><li><a href="global.html#Sidebar">Sidebar</a></li><li><a href="global.html#WeeklySummaryEmail">WeeklySummaryEmail</a></li><li><a href="global.html#Workout">Workout</a></li><li><a href="global.html#useAuth">useAuth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Fri Dec 06 2024 12:01:34 GMT-0800 (Pacific Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

@@ -3,10 +3,24 @@ import { useAuth } from "../context/AuthContext";
 import { useNavigate, Link } from "react-router-dom";
 import "../styles/Auth.css";
 
+/**
+ * Landing page component that displays a welcome message and login/register options.
+ * It checks if the user is authenticated, and redirects them to the home page if they are.
+ * 
+ * @component
+ * @example
+ * return (
+ *   <Landing />
+ * )
+ */
 function Landing() {
   const { isAuthenticated } = useAuth();
   const navigate = useNavigate();
 
+  /**
+   * Effect that redirects authenticated users to the home page.
+   * This runs when the `isAuthenticated` status changes.
+   */
   useEffect(() => {
     if (isAuthenticated) {
       navigate("/home");

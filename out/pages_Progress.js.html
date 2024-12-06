@@ -1,0 +1,164 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: pages/Progress.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: pages/Progress.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState, useEffect } from 'react';
+import { Box, Typography, Paper } from '@mui/material';
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
+import { useAuth } from '../context/AuthContext';
+
+/**
+ * Progress component that displays a user's progress over time in terms of weight, calories burned,
+ * and calories consumed, as well as the leaderboard for comparison.
+ */
+const Progress = () => {
+  const [progressData, setProgressData] = useState([]);
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  const { user } = useAuth();
+
+  // Fetch progress and leaderboard data when the user is authenticated
+  useEffect(() => {
+    if (user?.email) {
+      fetchProgressData(user.email);
+      fetchLeaderboardData();
+    }
+  }, [user]);
+
+  /**
+   * Fetches the progress data for the logged-in user.
+   * @param {string} email - The user's email.
+   */
+  const fetchProgressData = async (email) => {
+    try {
+      const response = await fetch(`/get_progress_data?email=${email}`);
+      if (response.ok) {
+        const data = await response.json();
+        setProgressData(data);
+      } else {
+        console.error('Failed to fetch progress data');
+      }
+    } catch (error) {
+      console.error('Error fetching progress data:', error);
+    }
+  };
+
+  /**
+   * Fetches the leaderboard data.
+   */
+  const fetchLeaderboardData = async () => {
+    try {
+      const response = await fetch(`/get_leaderboard_data`);
+      if (response.ok) {
+        const data = await response.json();
+        setLeaderboardData(data);
+      } else {
+        console.error('Failed to fetch leaderboard data');
+      }
+    } catch (error) {
+      console.error('Error fetching leaderboard data:', error);
+    }
+  };
+
+  return (
+    &lt;Box sx={{ padding: 3 }}>
+      {/* Progress Tracking Section */}
+      &lt;Paper sx={{ padding: 3, borderRadius: 2, marginBottom: 3 }}>
+        &lt;Typography variant="h5">Progress Tracking&lt;/Typography>
+        &lt;Typography variant="body2" color="textSecondary" sx={{ fontStyle: 'italic', marginBottom: 2 }}>
+          Track your journey and see how you improve over time!
+        &lt;/Typography>
+        {progressData.length > 0 ? (
+          &lt;ResponsiveContainer width="100%" height={400}>
+            &lt;LineChart data={progressData} margin={{ top: 5, right: 30, left: 20, bottom: 5 }}>
+              &lt;CartesianGrid strokeDasharray="3 3" />
+              &lt;XAxis dataKey="date" />
+              &lt;YAxis />
+              &lt;Tooltip />
+              &lt;Legend />
+              &lt;Line type="monotone" dataKey="weight" stroke="#8884d8" />
+              &lt;Line type="monotone" dataKey="caloriesBurned" stroke="#82ca9d" />
+              &lt;Line type="monotone" dataKey="caloriesConsumed" stroke="#ffc658" />
+            &lt;/LineChart>
+          &lt;/ResponsiveContainer>
+        ) : (
+          &lt;Typography variant="body2" color="textSecondary" sx={{ marginTop: 2 }}>
+            No progress data available. Start tracking your workouts and meals!
+          &lt;/Typography>
+        )}
+      &lt;/Paper>
+
+      {/* Leaderboard Section */}
+      &lt;Paper sx={{ padding: 3, borderRadius: 2 }}>
+        &lt;Typography variant="h5">Leaderboard&lt;/Typography>
+        &lt;Typography variant="body2" color="textSecondary" sx={{ fontStyle: 'italic', marginBottom: 2 }}>
+          See how you rank among others!
+        &lt;/Typography>
+        {leaderboardData.length > 0 ? (
+          &lt;Box>
+            {leaderboardData.map((entry, index) => (
+              &lt;Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', marginBottom: 1 }}>
+                &lt;Typography variant="body1">
+                  {index + 1}. {entry.name}
+                &lt;/Typography>
+                &lt;Typography variant="body1">Calories Burned: {entry.caloriesBurned}&lt;/Typography>
+              &lt;/Box>
+            ))}
+          &lt;/Box>
+        ) : (
+          &lt;Typography variant="body2" color="textSecondary" sx={{ marginTop: 2 }}>
+            No leaderboard data available. Start competing with others!
+          &lt;/Typography>
+        )}
+      &lt;/Paper>
+    &lt;/Box>
+  );
+};
+
+export default Progress;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AuthContext">AuthContext</a></li><li><a href="global.html#AuthProvider">AuthProvider</a></li><li><a href="global.html#Dashboard">Dashboard</a></li><li><a href="global.html#Home">Home</a></li><li><a href="global.html#Landing">Landing</a></li><li><a href="global.html#Login">Login</a></li><li><a href="global.html#Logout">Logout</a></li><li><a href="global.html#Meal">Meal</a></li><li><a href="global.html#Profile">Profile</a></li><li><a href="global.html#Progress">Progress</a></li><li><a href="global.html#Register">Register</a></li><li><a href="global.html#Sidebar">Sidebar</a></li><li><a href="global.html#WeeklySummaryEmail">WeeklySummaryEmail</a></li><li><a href="global.html#Workout">Workout</a></li><li><a href="global.html#useAuth">useAuth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Fri Dec 06 2024 12:01:34 GMT-0800 (Pacific Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

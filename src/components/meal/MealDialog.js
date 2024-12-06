@@ -9,6 +9,16 @@ import {
 } from "@mui/material";
 import DatePicker from "react-multi-date-picker";
 
+/**
+ * MealDialog is a dialog component for generating a new meal.
+ * It allows the user to input meal details such as type, diet, calories, ingredients,
+ * time available, and select dates for the meal.
+ *
+ * @param {Object} props - The component props.
+ * @param {boolean} props.open - Determines whether the dialog is open.
+ * @param {Function} props.handleClose - Function to close the dialog.
+ * @param {Function} props.handleGenerateMeal - Function to handle the meal generation after form submission.
+ */
 const MealDialog = ({ open, handleClose, handleGenerateMeal }) => {
   const [selectedDates, setSelectedDates] = useState([]);
 
@@ -20,6 +30,13 @@ const MealDialog = ({ open, handleClose, handleGenerateMeal }) => {
     time: "",
   });
 
+  /**
+   * Handles input field changes and updates the meal state.
+   * 
+   * @param {Object} e - The event object.
+   * @param {string} e.target.name - The name of the input field being changed.
+   * @param {string} e.target.value - The new value of the input field.
+   */
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewMeal((prev) => ({
@@ -28,6 +45,9 @@ const MealDialog = ({ open, handleClose, handleGenerateMeal }) => {
     }));
   };
 
+  /**
+   * Handles form submission, prepares meal data, and calls the generate meal handler.
+   */
   const handleSubmit = () => {
     let dates = selectedDates.map((dateObj) => ({
       date: `${dateObj.year}-${dateObj.month.number}-${dateObj.day}`,

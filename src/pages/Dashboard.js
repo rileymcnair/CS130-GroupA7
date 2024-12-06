@@ -13,6 +13,16 @@ import TodayIcon from "@mui/icons-material/Today";
 import FitnessCenterIcon from "@mui/icons-material/FitnessCenter";
 import RestaurantIcon from "@mui/icons-material/Restaurant";
 
+/**
+ * Dashboard component that displays a user's daily stats, workouts, meals, and calendar.
+ * It fetches data from an API based on the selected date.
+ * 
+ * @component
+ * @example
+ * return (
+ *   <Dashboard />
+ * )
+ */
 const Dashboard = () => {
   const { user } = useAuth();
   const [selectedDate, setSelectedDate] = useState(new Date());
@@ -21,6 +31,11 @@ const Dashboard = () => {
   const [weight, setWeight] = useState(undefined);
   const [avgCalIntake, setCalIntake] = useState(2000);
 
+  /**
+   * Fetches the user's workouts for a specific date.
+   * 
+   * @param {Date} date - The selected date to fetch workouts for.
+   */
   const fetchWorkoutsForDate = async (date) => {
     try {
       const response = await fetch("/get_workouts_on_day", {
@@ -40,6 +55,11 @@ const Dashboard = () => {
     }
   };
 
+  /**
+   * Fetches the user's meals for a specific date.
+   * 
+   * @param {Date} date - The selected date to fetch meals for.
+   */
   const fetchMealsForDate = async (date) => {
     try {
       const response = await fetch("/get_meals_on_day", {
@@ -58,6 +78,11 @@ const Dashboard = () => {
     }
   };
 
+  /**
+   * Fetches the user's weight for a specific date.
+   * 
+   * @param {Date} date - The selected date to fetch the user's weight for.
+   */
   const fetchWeightForDate = async (date) => {
     try {
       const response = await fetch("/get_weight_on_day", {
@@ -75,6 +100,9 @@ const Dashboard = () => {
     }
   };
 
+  /**
+   * Fetches the user's average calorie intake from their profile.
+   */
   const fetchUserAvgCalIntake = async () => {
     try {
       const response = await fetch(`/get_profile?email=${user.email}`);
@@ -87,6 +115,12 @@ const Dashboard = () => {
     }
   };
 
+  /**
+   * Handles the change of the selected date in the calendar.
+   * It updates the selected date and fetches data related to that date.
+   * 
+   * @param {Date} date - The newly selected date.
+   */
   const handleDateChange = (date) => {
     setSelectedDate(date);
     fetchWorkoutsForDate(date);
@@ -117,7 +151,6 @@ const Dashboard = () => {
             flex: 1,
             padding: 2,
             borderRadius: 2,
-            // minWidth: { xs: "100%", md: "30%" },
             width: "auto",
             maxWidth: 350,
           }}

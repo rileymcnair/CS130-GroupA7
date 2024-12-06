@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: pages/Register.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: pages/Register.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React, { useState, useEffect } from "react";
+import { useAuth } from "../context/AuthContext";
+import { useNavigate, Link } from "react-router-dom";
+import "../styles/Auth.css";
+
+/**
+ * Register component for handling user registration using email/password
+ * or Google authentication.
+ */
+function Register() {
+  const [email, setEmail] = useState(""); // Email state for the input field
+  const [password, setPassword] = useState(""); // Password state for the input field
+  const { register, loginWithGoogle, isAuthenticated } = useAuth(); // Destructure register and loginWithGoogle functions from AuthContext
+  const navigate = useNavigate(); // Navigate hook to redirect users after authentication
+
+  /**
+   * Effect hook that checks if the user is authenticated.
+   * If authenticated, redirect to the home page.
+   */
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/home"); // Redirect to the home page if authenticated
+    }
+  }, [isAuthenticated, navigate]);
+
+  /**
+   * Handles form submission for registration using email and password.
+   * @param {Event} e - The form submission event.
+   */
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    try {
+      await register(email, password); // Attempt to register with provided email and password
+      navigate("/home"); // Redirect to home on successful registration
+    } catch (error) {
+      console.error("Failed to register", error); // Log error if registration fails
+    }
+  };
+
+  /**
+   * Handles Google login registration.
+   * Attempts to register a user using their Google account.
+   */
+  const handleGoogleRegister = async () => {
+    try {
+      await loginWithGoogle(); // Attempt Google login
+      navigate("/home"); // Redirect to home on successful Google authentication
+    } catch (error) {
+      console.error("Failed to register with Google", error); // Log error if Google registration fails
+    }
+  };
+
+  return (
+    &lt;div className="auth-container">
+      &lt;h2>Register&lt;/h2>
+      &lt;form onSubmit={handleSubmit} className="auth-form">
+        {/* Email input field */}
+        &lt;input
+          type="email"
+          placeholder="Email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)} // Update email state on change
+        />
+        
+        {/* Password input field */}
+        &lt;input
+          type="password"
+          placeholder="Password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)} // Update password state on change
+        />
+        
+        {/* Submit button for email/password registration */}
+        &lt;button type="submit">Register&lt;/button>
+      &lt;/form>
+
+      {/* Button to register using Google */}
+      &lt;button onClick={handleGoogleRegister} className="google-login-button">
+        &lt;img 
+          src="https://lh3.googleusercontent.com/COxitqgJr1sJnIDe8-jiKhxDx1FrYbtRHKJ9z_hELisAlapwE9LUPh6fcXIfb5vwpbMl4xl9H9TRFPc5NOO8Sb3VSgIBrfRYvW6cUA" 
+          alt="Google icon" 
+          className="google-icon" 
+        />
+        Sign up with Google
+      &lt;/button>
+
+      {/* Link to login page if user already has an account */}
+      &lt;p>
+        Already have an account? &lt;Link to="/login">Login here&lt;/Link>
+      &lt;/p>
+    &lt;/div>
+  );
+}
+
+export default Register;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AuthContext">AuthContext</a></li><li><a href="global.html#AuthProvider">AuthProvider</a></li><li><a href="global.html#Dashboard">Dashboard</a></li><li><a href="global.html#Home">Home</a></li><li><a href="global.html#Landing">Landing</a></li><li><a href="global.html#Login">Login</a></li><li><a href="global.html#Logout">Logout</a></li><li><a href="global.html#Meal">Meal</a></li><li><a href="global.html#Profile">Profile</a></li><li><a href="global.html#Progress">Progress</a></li><li><a href="global.html#Register">Register</a></li><li><a href="global.html#Sidebar">Sidebar</a></li><li><a href="global.html#WeeklySummaryEmail">WeeklySummaryEmail</a></li><li><a href="global.html#Workout">Workout</a></li><li><a href="global.html#useAuth">useAuth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Fri Dec 06 2024 12:01:34 GMT-0800 (Pacific Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

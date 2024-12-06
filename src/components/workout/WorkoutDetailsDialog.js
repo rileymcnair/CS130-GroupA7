@@ -12,6 +12,18 @@ import {
 } from "@mui/material";
 import CloseIcon from "@mui/icons-material/Close";
 
+/**
+ * WorkoutDetailsDialog component allows editing of workout details, including general workout
+ * information (name, total minutes, body part focus) and exercise-specific details (name, reps, sets, weight, etc.).
+ *
+ * @param {Object} props - The component props.
+ * @param {boolean} props.open - Whether the dialog is open or not.
+ * @param {function} props.onClose - Function to close the dialog.
+ * @param {Object} props.workout - The workout object containing details to be edited.
+ * @param {function} props.onSave - Function to handle saving the updated workout details.
+ * @param {function} props.onWorkoutChange - Function to handle changes to the main workout details.
+ * @param {function} props.onExerciseChange - Function to handle changes to the individual exercise details.
+ */
 const WorkoutDetailsDialog = ({
   open,
   onClose,
@@ -22,6 +34,9 @@ const WorkoutDetailsDialog = ({
 }) => {
   const [isSaving, setIsSaving] = useState(false);
 
+  /**
+   * Handles saving the workout details by calling the onSave function and setting saving state.
+   */
   const handleSave = async () => {
     setIsSaving(true);
     await onSave();

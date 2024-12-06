@@ -5,12 +5,23 @@ import CompactWorkoutCard from "./CompactWorkoutCard";
 import AddIcon from "@mui/icons-material/Add";
 import { useNavigate } from "react-router-dom";
 
+/**
+ * WorkoutListCard component displays a list of workouts with a heading and an "Add" button.
+ * It shows workout details in compact cards and provides navigation to the full workouts list.
+ *
+ * @param {Object} props - The component props.
+ * @param {Array} props.workouts - List of workout objects to display.
+ */
 const WorkoutListCard = ({ workouts }) => {
   const navigate = useNavigate();
 
+  /**
+   * Navigates to the full list of workouts page.
+   */
   const handleNavigate = () => {
-    navigate("/workouts"); // Replace with your target route
+    navigate("/workouts"); // Navigates to the workout list page
   };
+
   return (
     <Paper
       sx={{
@@ -41,12 +52,12 @@ const WorkoutListCard = ({ workouts }) => {
             marginLeft: "auto",
           }}
         >
+          {/* "Add" button to navigate to the workouts page */}
           <IconButton
             onClick={handleNavigate}
             sx={{
-              //   backgroundColor: "#f0f0f0", // Optional: Add background styling
               "&:hover": {
-                backgroundColor: "#e0e0e0", // Hover effect
+                backgroundColor: "#e0e0e0", // Hover effect styling
               },
             }}
           >
@@ -70,10 +81,12 @@ const WorkoutListCard = ({ workouts }) => {
         }}
       >
         {workouts.length > 0 ? (
+          // Display workouts in CompactWorkoutCard components
           workouts.map((workout) => (
             <CompactWorkoutCard key={workout.id} workout={workout} />
           ))
         ) : (
+          // Message shown when no workouts are available
           <Typography
             variant="body2"
             sx={{

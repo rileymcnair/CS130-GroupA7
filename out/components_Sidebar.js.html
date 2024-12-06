@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>JSDoc: Source: components/Sidebar.js</title>
+
+    <script src="scripts/prettify/prettify.js"> </script>
+    <script src="scripts/prettify/lang-css.js"> </script>
+    <!--[if lt IE 9]>
+      <script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+    <link type="text/css" rel="stylesheet" href="styles/prettify-tomorrow.css">
+    <link type="text/css" rel="stylesheet" href="styles/jsdoc-default.css">
+</head>
+
+<body>
+
+<div id="main">
+
+    <h1 class="page-title">Source: components/Sidebar.js</h1>
+
+    
+
+
+
+    
+    <section>
+        <article>
+            <pre class="prettyprint source linenums"><code>import React from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { Box, Typography, List, ListItem, ListItemIcon, ListItemText, Drawer } from '@mui/material';
+import DashboardIcon from '@mui/icons-material/Dashboard';
+import FitnessCenterIcon from '@mui/icons-material/FitnessCenter';
+import RestaurantIcon from '@mui/icons-material/Restaurant';
+import PersonIcon from '@mui/icons-material/Person';
+import LogoutIcon from '@mui/icons-material/Logout';
+import { useAuth } from '../context/AuthContext';
+
+const drawerWidth = 200;
+
+/**
+ * Sidebar component that displays navigation options and a logout button.
+ * The sidebar is displayed permanently and contains links to various pages like
+ * Dashboard, Workouts, Meals, and User profile, with active page highlighting.
+ */
+const Sidebar = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { logout } = useAuth();
+
+  // Array of menu items, each containing text, icon, and path
+  const menuItems = [
+    { text: 'Dashboard', icon: &lt;DashboardIcon />, path: '/home' },
+    { text: 'Workouts', icon: &lt;FitnessCenterIcon />, path: '/workouts' },
+    { text: 'Meals', icon: &lt;RestaurantIcon />, path: '/meals' },
+    { text: 'User', icon: &lt;PersonIcon />, path: '/profile' },
+  ];
+
+  /**
+   * Handles navigation for the sidebar items. If the logout button is clicked,
+   * the user is logged out and redirected to the login page.
+   * 
+   * @param {string} path - The path to navigate to or 'logout' if logging out.
+   */
+  const handleNavigate = (path) => {
+    if (path === 'logout') {
+      logout(); // Log the user out
+      navigate('/login'); // Redirect to login page after logout
+    } else {
+      navigate(path); // Navigate to the desired page
+    }
+  };
+
+  return (
+    &lt;Drawer
+      variant="permanent"
+      sx={{
+        width: drawerWidth,
+        flexShrink: 0,
+        '&amp; .MuiDrawer-paper': {
+            width: drawerWidth,
+          },
+      }}
+    >
+      &lt;Box sx={{ p: 2 }}>
+        &lt;Typography variant="h6" sx={{ color: '#4caf50', fontWeight: 'bold' }}>
+          Healthify
+        &lt;/Typography>
+      &lt;/Box>
+      &lt;List>
+        {menuItems.map((item) => (
+          &lt;ListItem
+            button
+            key={item.text}
+            onClick={() => handleNavigate(item.path)}
+            sx={{
+              backgroundColor: location.pathname === item.path ? '#a5f0bc' : 'transparent',
+              '&amp;:hover': {
+                backgroundColor: '#a5f0bc',
+              },
+            }}
+          >
+            &lt;ListItemIcon sx={{ color: '#4caf50' }}>{item.icon}&lt;/ListItemIcon>
+            &lt;ListItemText 
+              primary={item.text} 
+            />
+          &lt;/ListItem>
+        ))}
+        {/* Logout item */}
+        &lt;ListItem 
+          button 
+          onClick={() => handleNavigate('logout')}
+          sx={{
+            mt: 2,
+            '&amp;:hover': {
+              backgroundColor: '#a5f0bc',
+            },
+          }}
+        >
+          &lt;ListItemIcon sx={{ color: '#4caf50' }}>
+            &lt;LogoutIcon />
+          &lt;/ListItemIcon>
+          &lt;ListItemText 
+            primary="Logout" 
+          />
+        &lt;/ListItem>
+      &lt;/List>
+    &lt;/Drawer>
+  );
+};
+
+export default Sidebar;
+</code></pre>
+        </article>
+    </section>
+
+
+
+
+</div>
+
+<nav>
+    <h2><a href="index.html">Home</a></h2><h3>Global</h3><ul><li><a href="global.html#AuthContext">AuthContext</a></li><li><a href="global.html#AuthProvider">AuthProvider</a></li><li><a href="global.html#Dashboard">Dashboard</a></li><li><a href="global.html#Home">Home</a></li><li><a href="global.html#Landing">Landing</a></li><li><a href="global.html#Login">Login</a></li><li><a href="global.html#Logout">Logout</a></li><li><a href="global.html#Meal">Meal</a></li><li><a href="global.html#Profile">Profile</a></li><li><a href="global.html#Progress">Progress</a></li><li><a href="global.html#Register">Register</a></li><li><a href="global.html#Sidebar">Sidebar</a></li><li><a href="global.html#WeeklySummaryEmail">WeeklySummaryEmail</a></li><li><a href="global.html#Workout">Workout</a></li><li><a href="global.html#useAuth">useAuth</a></li></ul>
+</nav>
+
+<br class="clear">
+
+<footer>
+    Documentation generated by <a href="https://github.com/jsdoc/jsdoc">JSDoc 4.0.4</a> on Fri Dec 06 2024 12:01:34 GMT-0800 (Pacific Standard Time)
+</footer>
+
+<script> prettyPrint(); </script>
+<script src="scripts/linenumber.js"> </script>
+</body>
+</html>

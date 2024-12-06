@@ -14,9 +14,25 @@ import CloseIcon from "@mui/icons-material/Close";
 import AddIcon from "@mui/icons-material/Add";
 import DeleteIcon from "@mui/icons-material/Delete";
 
+/**
+ * MealDetailsDialog is a dialog component for editing meal details.
+ * It allows the user to modify meal properties, including name, calories, macros, and ingredients.
+ *
+ * @param {Object} props - The component props.
+ * @param {boolean} props.open - Determines whether the dialog is open.
+ * @param {Function} props.onClose - Function to close the dialog.
+ * @param {Object} props.meal - The meal data to edit.
+ * @param {Function} props.onSave - Function to handle saving the edited meal data.
+ */
 const MealDetailsDialog = ({ open, onClose, meal, onSave }) => {
   const [editedMeal, setEditedMeal] = useState(meal); // Track the meal's editable state
 
+  /**
+   * Handles input field changes and updates the meal state.
+   *
+   * @param {string} field - The field name to update.
+   * @param {string} value - The new value to set.
+   */
   const handleInputChange = (field, value) => {
     setEditedMeal((prev) => ({
       ...prev,
@@ -24,6 +40,12 @@ const MealDetailsDialog = ({ open, onClose, meal, onSave }) => {
     }));
   };
 
+  /**
+   * Handles changes to an ingredient field at a specific index.
+   *
+   * @param {number} index - The index of the ingredient to update.
+   * @param {string} value - The new value for the ingredient.
+   */
   const handleIngredientChange = (index, value) => {
     const updatedIngredients = [...editedMeal.ingredients];
     updatedIngredients[index] = value;
@@ -33,6 +55,9 @@ const MealDetailsDialog = ({ open, onClose, meal, onSave }) => {
     }));
   };
 
+  /**
+   * Adds a new empty ingredient field.
+   */
   const handleAddIngredient = () => {
     setEditedMeal((prev) => ({
       ...prev,
@@ -40,6 +65,11 @@ const MealDetailsDialog = ({ open, onClose, meal, onSave }) => {
     }));
   };
 
+  /**
+   * Removes an ingredient field at a specific index.
+   *
+   * @param {number} index - The index of the ingredient to remove.
+   */
   const handleRemoveIngredient = (index) => {
     const updatedIngredients = [...editedMeal.ingredients];
     updatedIngredients.splice(index, 1); // Remove the ingredient at the specified index
@@ -49,6 +79,9 @@ const MealDetailsDialog = ({ open, onClose, meal, onSave }) => {
     }));
   };
 
+  /**
+   * Handles saving the edited meal and closing the dialog.
+   */
   const handleSave = () => {
     onSave(editedMeal); // Pass updated meal back to parent
     onClose(); // Close the dialog
