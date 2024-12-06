@@ -53,6 +53,16 @@ curl -X POST http://127.0.0.1:5000/add_user \
 }'
 ```
 
+
+### How to Trigger Workflows
+
+- **Automated Tests**:  
+  Push or create a pull request to the `main` branch to run unit tests (frontend and backend) and integration tests.
+
+- **Deployment**:  
+  Push to the `deploy` branch to deploy the application to Firebase Hosting.
+
+
 # Repository Template
 
 [![Build Status](https://app.travis-ci.com/melaasar/cs130-template.svg?branch=master)](https://app.travis-ci.com/github/melaasar/cs130-template)
