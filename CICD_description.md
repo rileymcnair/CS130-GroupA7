@@ -1,48 +1,52 @@
-Congure a CI pipeline for your repository that invokes your build script(s) on code commits to
-your branches (at least the master branch).
+# CI/CD Workflow Structure
 
-You can use Travis CI, Circle CI, or other tools.
+## Unit Tests
+Unit tests for both frontend and backend run on every push and pull request (PR) to the `main` branch.
 
-Include a pointer to your CI pipeline script, and describe how it is structured, and how the
-process works (including triggers, actions, outputs, containers, etc.). You may choose to include a
-diagram to help explain the process
+### `frontendUnitTests.yml`
+- **Triggers**: On push or PR to `main`.
+- **Actions**: 
+  - Install dependencies to run React.
+  - Run unit tests.
+- **Outputs**: Logs the names of failed test cases.
 
+### `backendUnitTests.yml`
+- **Triggers**: On push or PR to `main`.
+- **Actions**: 
+  - Install Python dependencies (`pip install requirements.txt`).
+  - Run unit tests.
+- **Outputs**: Logs failed test case responses.
 
-Using Github Actions for both CI and CD
+---
 
-# Structure
-1. unit tests run on push and PR to main, build is done here as well
-2. integration tests run on push and PR to main.(project is small so it's not that bad to run all the tests)
-3. deploy to Firebase Hosting and Firebase Functions is done upon push, since code has already been tested when pushing to main.
+## Integration/E2E Tests
+Integration and end-to-end (E2E) tests run on every push and PR to the `main` branch but depend on the successful completion of both frontend and backend unit tests.
 
-## unitTests
-### triggers
-- workflow triggered upon push to main
-- workflow triggered on PR that targets main
-### actions
-- test both frontend and backend before building, to avoided wasted runtime failing after a build
-### outputs
-- test results
-- build logs
+### `integrationTests.yml`
+- **Triggers**: On push or PR to `main`.
+- **Condition**: Waits for the completion of the following workflows:
+  - Frontend Unit Tests.
+  - Backend Unit Tests.
+- **Actions**:
+  1. Set up the project environment.
+  2. Install dependencies for both React and Python.
+  3. Build the project.
+  4. Start local servers for the frontend and backend.
+  5. Run Playwright tests.
+- **Outputs**: Logs the names of failed test cases.
 
-## integrationTests
-### triggers
-- both unittests completed
-### actions
-- 
-### outputs
-- test results
+---
 
+## Deployment Workflow
+Deployment workflows are triggered by pushing to the `deploy` branch. This allows for manual control over when the latest version of the app is deployed, providing time for additional testing (e.g., manual testing).
 
-## deployFirebaseHosting.yml
-### triggers
-- workflow runs on push to the deployment branch. 
-- devs should only merge to deployment branch from main only
-    - since main is tested, the code that gets deployed should work.
-### actions
-- installing the respective required dependencies
-- deploy to Firebase 
+### `deployFirebaseHosting.yml`
+- **Triggers**: On push to the `deploy` branch.
+- **Actions**:
+  1. Install dependencies and build the app.
+  2. Deploy the app to Firebase Hosting.
 
-## outputs
-- build logs
-- response logs?
+### `deployGoogleCloudRun.yml`
+- **Status**: Not implemented due to issues with deploying the Docker container to Google Cloud Run.
+- **Intended Structure**:
+  - Similar to `deployFirebaseHosting.yml`, but adapted for deploying a Docker container to Google Cloud Run.
