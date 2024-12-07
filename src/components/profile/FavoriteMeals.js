@@ -54,7 +54,7 @@ const FavoriteMeals = ({
       >
         <List>
           {/* Map over mealDetails to render each meal */}
-          {mealDetails.map(
+          {mealDetails?.map(
             (meal, index) =>
               meal && (
                 <React.Fragment key={profileData.favorited_meals[index]}>
@@ -65,7 +65,7 @@ const FavoriteMeals = ({
                         onClick={() =>
                           removeFavorite(
                             "meal",
-                            profileData.favorited_meals[index],
+                            profileData.favorited_meals[index]
                           )
                         }
                         edge="end"
@@ -101,7 +101,7 @@ const FavoriteMeals = ({
                   {/* Divider between meals */}
                   {index < mealDetails.length - 1 && <Divider />}
                 </React.Fragment>
-              ),
+              )
           )}
         </List>
       </Paper>

@@ -54,7 +54,7 @@ const FavoriteWorkouts = ({
       >
         <List>
           {/* Map over workoutDetails to render each workout */}
-          {workoutDetails.map(
+          {workoutDetails?.map(
             (workout, index) =>
               workout && (
                 <React.Fragment key={profileData.favorited_workouts[index]}>
@@ -65,7 +65,7 @@ const FavoriteWorkouts = ({
                         onClick={() =>
                           removeFavorite(
                             "workout",
-                            profileData.favorited_workouts[index],
+                            profileData.favorited_workouts[index]
                           )
                         }
                         edge="end"
@@ -102,14 +102,14 @@ const FavoriteWorkouts = ({
                                 {exercise?.avg_calories_burned || 0} cal
                               </Typography>
                             </Box>
-                          ),
+                          )
                       )}
                     </Box>
                   </ListItem>
                   {/* Divider between workouts */}
                   {index < workoutDetails.length - 1 && <Divider />}
                 </React.Fragment>
-              ),
+              )
           )}
         </List>
       </Paper>
