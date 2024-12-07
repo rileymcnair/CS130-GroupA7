@@ -138,7 +138,7 @@ def save_profile():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
     
-@app.route('/historical_data', methods=['GET'])
+@app.route('/historical_data', methods=['POST'])
 def get_historical_data():
     data = request.json
     if 'email' not in data:
@@ -159,7 +159,26 @@ def get_historical_data():
                 for day_id in day_ids:
                     day_ref = db.collection('Day').document(day_id)
                     day_values = day_ref.get().to_dict()
-                    res.append(day_values)
+                    if "meals" in day_values:
+                        for meal_id in day_values['meals']:
+                            meal_ref = db.collection('Meal').document(meal_id)
+                            meal_doc = meal_ref.get()
+                            if  meal_doc.exists:
+                                meal_values = meal_doc.to_dict()
+                                meal_values["date"] = day_values['date']
+                                meal_values['eventType'] = "Meal"
+                                res.append(meal_values)
+                                
+                    if "workouts" in day_values:
+                        for workout_id in day_values['workouts']:
+                            workout_ref = db.collection('Workout').document(workout_id)
+                            workout_doc = workout_ref.get()
+                            if  workout_doc.exists:
+                                workout_values = workout_doc.to_dict()
+                                workout_values["date"] = day_values['date']
+                                workout_values['eventType'] = "Workout"
+                                res.append(workout_values)
+                            
         return jsonify(res), 200
 
     except Exception as e:
