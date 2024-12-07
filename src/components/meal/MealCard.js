@@ -26,9 +26,6 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
 
   const handleUpdateCardDetails = (updatedMeal) => {
     // Instead of mutating meal, create a new object to avoid side effects
-    setUserMeals((prevMeals) =>
-      prevMeals.map((m) => (m.id === updatedMeal.id ? updatedMeal : m))
-    );
     // Directly modify local state (not the prop)
     Object.assign(meal, updatedMeal); // Avoid doing this; it's better to use setState
   };
@@ -37,7 +34,7 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
     try {
       const response = await fetch("/edit_meal", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        hexfaders: { "Content-Type": "application/json" },
         body: JSON.stringify({
           email: user.email,
           meal_id: updatedMeal.id,
@@ -96,9 +93,7 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
       return;
     }
 
-    const endpoint = isFavorite
-      ? "/unfavorite_meal"
-      : "/add_meal_to_favorites";
+    const endpoint = isFavorite ? "/unfavorite_meal" : "/add_meal_to_favorites";
 
     try {
       const response = await fetch(endpoint, {
@@ -152,18 +147,54 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
 
   return (
     <Box>
-      <Paper sx={{ marginTop: 4, padding: 3, borderRadius: 2, display: "flex", flexDirection: "column", maxWidth: 330, height: 450 }}>
-        <Box sx={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 1 }}>
+      <Paper
+        sx={{
+          marginTop: 4,
+          padding: 3,
+          borderRadius: 2,
+          display: "flex",
+          flexDirection: "column",
+          maxWidth: 330,
+          height: 450,
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            marginBottom: 1,
+          }}
+        >
           <Typography variant="h6" sx={{ fontWeight: "bold" }}>
             {meal.name || "Meal Name"}
           </Typography>
-          <IconButton onClick={handleFavoriteToggle} edge="end" color="primary" sx={{ mr: 1 }}>
+          <IconButton
+            onClick={handleFavoriteToggle}
+            edge="end"
+            color="primary"
+            sx={{ mr: 1 }}
+          >
             {isFavorite ? <FavoriteIcon /> : <FavoriteBorderIcon />}
           </IconButton>
         </Box>
 
-        <Box sx={{ display: "flex", justifyContent: "center", flexDirection: "row", marginBlock: 2 }}>
-          <Box sx={{ display: "flex", alignItems: "center", flexDirection: "column", flex: 1 }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "center",
+            flexDirection: "row",
+            marginBlock: 2,
+          }}
+        >
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              flexDirection: "column",
+              flex: 1,
+            }}
+          >
             <Typography variant="body1">
               <strong>Calories</strong>
             </Typography>
@@ -171,15 +202,42 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
           </Box>
         </Box>
 
-        <Box sx={{ flexDirection: "column", justifyContent: "center", alignItems: "center" }}>
+        <Box
+          sx={{
+            flexDirection: "column",
+            justifyContent: "center",
+            alignItems: "center",
+          }}
+        >
           <Box>
             <Typography variant="body1">
               <strong>Macros</strong>
             </Typography>
           </Box>
-          <Box sx={{ display: "flex", alignItems: "center", justifyContent: "left", marginBottom: 3 }}>
-            <MacronutrientChart proteins={meal.proteins} carbs={meal.carbs} fats={meal.fats} calories={meal.calories} />
-            <Box sx={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "space-between", flex: 1, marginLeft: 3 }}>
+          <Box
+            sx={{
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "left",
+              marginBottom: 3,
+            }}
+          >
+            <MacronutrientChart
+              proteins={meal.proteins}
+              carbs={meal.carbs}
+              fats={meal.fats}
+              calories={meal.calories}
+            />
+            <Box
+              sx={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                justifyContent: "space-between",
+                flex: 1,
+                marginLeft: 3,
+              }}
+            >
               <Typography sx={{ flex: 1, textAlign: "center" }}>
                 <strong>Protein</strong>
                 <br />
@@ -201,8 +259,13 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
           </Box>
         </Box>
 
-        <Box sx={{ marginBottom: 2, flex: 1, overflowY: "auto", maxHeight: 200 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: "bold", marginBottom: 1 }}>
+        <Box
+          sx={{ marginBottom: 2, flex: 1, overflowY: "auto", maxHeight: 200 }}
+        >
+          <Typography
+            variant="subtitle1"
+            sx={{ fontWeight: "bold", marginBottom: 1 }}
+          >
             Ingredients
           </Typography>
           <Box sx={{ paddingLeft: 2 }}>
@@ -214,13 +277,35 @@ const MealCard = ({ meal, handleDelete, handleFavoriteToggleCallback }) => {
           </Box>
         </Box>
 
-        <Box sx={{ display: "flex", justifyContent: "space-between", position: "relative", marginTop: "auto" }}>
+        <Box
+          sx={{
+            display: "flex",
+            justifyContent: "space-between",
+            position: "relative",
+            marginTop: "auto",
+          }}
+        >
           {isFavorite && (
-            <IconButton onClick={handleRemoveMeal} color="error" sx={{ cursor: "pointer", fontWeight: "bold" }}>
+            <IconButton
+              onClick={handleRemoveMeal}
+              color="error"
+              sx={{ cursor: "pointer", fontWeight: "bold" }}
+            >
               <DeleteIcon />
             </IconButton>
           )}
-          <Typography variant="body2" sx={{ color: "primary.main", cursor: "pointer", fontWeight: "bold", position: "absolute", bottom: 5, right: 16 }} onClick={handleDialogOpen}>
+          <Typography
+            variant="body2"
+            sx={{
+              color: "primary.main",
+              cursor: "pointer",
+              fontWeight: "bold",
+              position: "absolute",
+              bottom: 5,
+              right: 16,
+            }}
+            onClick={handleDialogOpen}
+          >
             Edit
           </Typography>
           <MealDetailsDialog
