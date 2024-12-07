@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>API Documentation</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+        }
+        .container {
+            padding: 20px;
+            max-width: 1000px;
+            margin: auto;
+        }
+        h1 {
+            text-align: center;
+        }
+        .endpoint {
+            margin-bottom: 30px;
+        }
+        .endpoint h2 {
+            margin-bottom: 5px;
+        }
+        .endpoint p, .endpoint pre {
+            margin: 5px 0;
+        }
+        .endpoint code {
+            background-color: #f4f4f4;
+            padding: 2px 5px;
+            border-radius: 5px;
+        }
+        .method {
+            font-weight: bold;
+            color: #2c3e50;
+        }
+        strong {
+            display: inline-block;
+            margin-top: 5px;
+        }
+        pre {
+            background: #f4f4f4;
+            padding: 10px;
+            white-space: pre-wrap;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>API Documentation</h1>
+
+        <!-- Health Check -->
+        <div class="endpoint">
+            <h2>Health Check</h2>
+            <p class="method">GET /health</p>
+            <p>Checks if the application is running.</p>
+            <strong>Response:</strong>
+            <pre>"App is running!"</pre>
+        </div>
+
+        <!-- Add User -->
+        <div class="endpoint">
+            <h2>Add User</h2>
+            <p class="method">POST /add_user</p>
+            <p>Adds a new user to the database.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "avg_cal_intake": number,
+    "date_of_birth": "YYYY-MM-DD",
+    "email": "string",
+    "goal": "string",
+    "height": number,
+    "name": "string",
+    "weight": number
+}
+            </pre>
+            <strong>Response:</strong>
+            <pre>{"message": "User added successfully"}</pre>
+        </div>
+
+        <!-- Get Profile -->
+        <div class="endpoint">
+            <h2>Get Profile</h2>
+            <p class="method">GET /get_profile?email=string</p>
+            <p>Fetches a user profile by email.</p>
+            <strong>Response:</strong> User profile data as JSON or {"message": "Profile not found"}.
+        </div>
+
+        <!-- Save Profile -->
+        <div class="endpoint">
+            <h2>Save Profile</h2>
+            <p class="method">POST /save_profile</p>
+            <p>Creates or updates a user profile.</p>
+            <strong>Request Body:</strong> JSON object with at least "email" field and other user data.
+            <strong>Response:</strong>
+            <pre>{"message": "Profile saved successfully"}</pre>
+        </div>
+
+        <!-- Historical Data -->
+        <div class="endpoint">
+            <h2>Historical Data</h2>
+            <p class="method">GET /historical_data</p>
+            <p>Fetches historical data for a user.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "email": "string"
+}
+            </pre>
+            <strong>Response:</strong> Historical data as JSON.
+        </div>
+
+        <!-- Remove Favorite Meal -->
+        <div class="endpoint">
+            <h2>Remove Favorite Meal</h2>
+            <p class="method">POST /remove_favorite_meal</p>
+            <p>Removes a meal from a user's favorites.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "email": "string",
+    "id": "meal_id"
+}
+            </pre>
+            <strong>Response:</strong>
+            <pre>{"message": "Meal removed from favorites"}</pre>
+        </div>
+
+        <!-- Delete Meal -->
+        <div class="endpoint">
+            <h2>Delete Meal</h2>
+            <p class="method">DELETE /remove_meal</p>
+            <p>Deletes a meal by its ID.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "meal_id": "string",
+    "email": "string (optional)"
+}
+            </pre>
+            <strong>Response:</strong>
+            <pre>{"message": "Meal deleted successfully"}</pre>
+        </div>
+
+        <!-- Delete Workout -->
+        <div class="endpoint">
+            <h2>Delete Workout</h2>
+            <p class="method">DELETE /remove_workout</p>
+            <p>Deletes a workout by its ID.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "workout_id": "string",
+    "email": "string (optional)"
+}
+            </pre>
+            <strong>Response:</strong>
+            <pre>{"message": "Workout deleted successfully"}</pre>
+        </div>
+
+        <!-- Remove Favorite Workout -->
+        <div class="endpoint">
+            <h2>Remove Favorite Workout</h2>
+            <p class="method">POST /remove_favorite_workout</p>
+            <p>Removes a favorite workout for a user.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "email": "string",
+    "id": "workout_id"
+}
+            </pre>
+            <strong>Response:</strong>
+            <pre>{"message": "Workout, associated exercises, and Day entries updated successfully"}</pre>
+        </div>
+
+        <!-- Create Favorite Meal -->
+        <div class="endpoint">
+            <h2>Create Favorite Meal</h2>
+            <p class="method">POST /create_favorite_meal</p>
+            <p>Creates a new meal and adds it to the user's favorites.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "email": "string",
+    "name": "string",
+    "calories": number,
+    "carbs": number,
+    "fats": number,
+    "ingredients": ["string"],
+    "proteins": number,
+    "type": "string"
+}
+            </pre>
+            <strong>Response:</strong>
+            <pre>{"message": "Meal created and added to favorites", "meal_id": "string"}</pre>
+        </div>
+
+        <!-- Add Meal to Favorites -->
+        <div class="endpoint">
+            <h2>Add Meal to Favorites</h2>
+            <p class="method">POST /add_meal_to_favorites</p>
+            <p>Adds an existing meal to the user's favorites.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "meal_id": "string",
+    "email": "string"
+}
+            </pre>
+            <strong>Response:</strong>
+            <pre>{"message": "Meal added to favorites", "meal_id": "string"}</pre>
+        </div>
+
+        <!-- Generate Meal -->
+        <div class="endpoint">
+            <h2>Generate Meal</h2>
+            <p class="method">POST /generate_meal</p>
+            <p>Generates a meal recommendation using Google Gemini.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "email": "string",
+    "type": "string",
+    "diet": "string",
+    "calories": number,
+    "ingredients": ["string"],
+    "time": number,
+    "dates": [{"date": "YYYY-MM-DD", "day": "string"}]
+}
+            </pre>
+            <strong>Response:</strong> 
+            <pre>
+{
+    "message": "Meal generated successfully",
+    "meal_id": "string",
+    "meal_data": { ... }
+}
+            </pre>
+        </div>
+
+        <!-- Get User Meals -->
+        <div class="endpoint">
+            <h2>Get User Meals</h2>
+            <p class="method">GET /get_user_meals?email=string</p>
+            <p>Fetches meals associated with the user.</p>
+            <strong>Response:</strong> List of meals as JSON.
+        </div>
+
+        <!-- Get User Workouts -->
+        <div class="endpoint">
+            <h2>Get User Workouts</h2>
+            <p class="method">GET /get_user_workouts?email=string</p>
+            <p>Fetches workouts associated with the user.</p>
+            <strong>Response:</strong> List of workouts as JSON.
+        </div>
+
+        <!-- Generate Workout -->
+        <div class="endpoint">
+            <h2>Generate Workout</h2>
+            <p class="method">POST /generate_workout</p>
+            <p>Generates a workout recommendation using Google Gemini.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "email": "string",
+    "total_minutes": number,
+    "body_parts": "string",
+    "avg_calories_burned": number,
+    "dates": [{"date": "YYYY-MM-DD", "day": "string"}]
+}
+            </pre>
+            <strong>Response:</strong> 
+            <pre>
+{
+    "message": "Workout generated successfully",
+    "workout_id": "string",
+    "workout_data": { ... }
+}
+            </pre>
+        </div>
+
+        <!-- Get N Not Favorited Meals -->
+        <div class="endpoint">
+            <h2>Get N Not Favorited Meals</h2>
+            <p class="method">GET /get_n_not_favorited_meals?numMeals=number&email=string</p>
+            <p>Fetches a number of meals not favorited by the user.</p>
+            <strong>Response:</strong> List of meal objects as JSON.
+        </div>
+
+        <!-- Get N Not Favorited Workouts -->
+        <div class="endpoint">
+            <h2>Get N Not Favorited Workouts</h2>
+            <p class="method">GET /get_n_not_favorited_workouts?numWorkouts=number&email=string</p>
+            <p>Fetches a number of workouts not favorited by the user.</p>
+            <strong>Response:</strong> List of workout objects as JSON.
+        </div>
+
+        <!-- Get Favorite Meals -->
+        <div class="endpoint">
+            <h2>Get Favorite Meals</h2>
+            <p class="method">GET /get_favorite_meals?email=string</p>
+            <p>Fetches user's favorited meals.</p>
+            <strong>Response:</strong> List of favorite meals as JSON.
+        </div>
+
+        <!-- Unfavorite Meal -->
+        <div class="endpoint">
+            <h2>Unfavorite Meal</h2>
+            <p class="method">POST /unfavorite_meal</p>
+            <p>Removes a meal from the user's favorites and today's entry.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "email": "string",
+    "meal_id": "string"
+}
+            </pre>
+            <strong>Response:</strong>
+            <pre>{"message": "Meal unfavorited and removed from today's entry successfully"}</pre>
+        </div>
+
+        <!-- Unfavorite Workout -->
+        <div class="endpoint">
+            <h2>Unfavorite Workout</h2>
+            <p class="method">POST /unfavorite_workout</p>
+            <p>Removes a workout from the user's favorites and today's entry.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "email": "string",
+    "workout_id": "string"
+}
+            </pre>
+            <strong>Response:</strong>
+            <pre>{"message": "Workout unfavorited and removed from today's entry successfully"}</pre>
+        </div>
+
+        <!-- Edit Meal -->
+        <div class="endpoint">
+            <h2>Edit Meal</h2>
+            <p class="method">POST /edit_meal</p>
+            <p>Edits an existing meal's details.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "email": "string",
+    "meal_id": "string",
+    "meal_data": { ... updated fields ... }
+}
+            </pre>
+            <strong>Response:</strong>
+            <pre>{"message": "Meal updated successfully"}</pre>
+        </div>
+
+        <!-- Create Workout -->
+        <div class="endpoint">
+            <h2>Create Workout</h2>
+            <p class="method">POST /create_workout</p>
+            <p>Creates a new workout with provided exercises.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "exercises": [...],
+    "body_part_focus": "string",
+    "total_minutes": number
+}
+            </pre>
+            <strong>Response:</strong>
+            <pre>{"message": "Workout created successfully", "workout_id": "string"}</pre>
+        </div>
+
+        <!-- Get Favorite Workouts -->
+        <div class="endpoint">
+            <h2>Get Favorite Workouts</h2>
+            <p class="method">GET /get_favorite_workouts?email=string</p>
+            <p>Fetches user's favorited workouts.</p>
+            <strong>Response:</strong> List of favorite workouts as JSON.
+        </div>
+
+        <!-- Create User Workout -->
+        <div class="endpoint">
+            <h2>Create User Workout</h2>
+            <p class="method">POST /create_user_workout</p>
+            <p>Creates a workout and associates it with a user.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "email": "string",
+    "exercises": [...],
+    "body_part_focus": "string",
+    "total_minutes": number
+}
+            </pre>
+            <strong>Response:</strong>
+            <pre>{"message": "Workout created successfully", "workout_id": "string"}</pre>
+        </div>
+
+        <!-- Edit User Workout -->
+        <div class="endpoint">
+            <h2>Edit User Workout</h2>
+            <p class="method">PUT /edit_user_workout/&lt;workout_id&gt;</p>
+            <p>Edits an existing user workout and its exercises.</p>
+            <strong>Request Body:</strong> JSON containing updated workout and exercises data.
+            <strong>Response:</strong>
+            <pre>{"message": "Workout and exercises updated successfully"}</pre>
+        </div>
+
+        <!-- Get Exercise -->
+        <div class="endpoint">
+            <h2>Get Exercise</h2>
+            <p class="method">GET /get_exercise/&lt;exercise_id&gt;</p>
+            <p>Fetches details of a specific exercise by ID.</p>
+            <strong>Response:</strong> Exercise data as JSON.
+        </div>
+
+        <!-- Get Calendar -->
+        <div class="endpoint">
+            <h2>Get Calendar</h2>
+            <p class="method">GET /get_calendar?email=string</p>
+            <p>Fetches the calendar entries associated with the user.</p>
+            <strong>Response:</strong> Calendar data as JSON.
+        </div>
+
+        <!-- Get Workouts on Day -->
+        <div class="endpoint">
+            <h2>Get Workouts on Day</h2>
+            <p class="method">POST /get_workouts_on_day</p>
+            <p>Fetches workouts scheduled on a specific date for the user.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "email": "string",
+    "date": "YYYY-MM-DD"
+}
+            </pre>
+            <strong>Response:</strong> List of workouts (with exercises) as JSON.
+        </div>
+
+        <!-- Get Weight on Day -->
+        <div class="endpoint">
+            <h2>Get Weight on Day</h2>
+            <p class="method">POST /get_weight_on_day</p>
+            <p>Fetches the user's weight recorded for a specific date.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "date": "YYYY-MM-DD"
+}
+            </pre>
+            <strong>Response:</strong>
+            <pre>{"date": "YYYY-MM-DD", "weight": number}</pre>
+        </div>
+
+        <!-- Update Weight on Day -->
+        <div class="endpoint">
+            <h2>Update Weight on Day</h2>
+            <p class="method">POST /update_weight_on_day</p>
+            <p>Updates or sets the user's weight for a given date.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "date": "YYYY-MM-DD",
+    "weight": number
+}
+            </pre>
+            <strong>Response:</strong>
+            <pre>{"message": "Weight updated successfully"}</pre>
+        </div>
+
+        <!-- Get Meals on Day -->
+        <div class="endpoint">
+            <h2>Get Meals on Day</h2>
+            <p class="method">POST /get_meals_on_day</p>
+            <p>Fetches meals scheduled on a specific date for the user.</p>
+            <strong>Request Body:</strong>
+            <pre>
+{
+    "email": "string",
+    "date": "YYYY-MM-DD"
+}
+            </pre>
+            <strong>Response:</strong> List of meals as JSON.
+        </div>
+
+        <!-- Get Meal Details -->
+        <div class="endpoint">
+            <h2>Get Meal Details</h2>
+            <p class="method">GET /get_meal_details?mealId=string</p>
+            <p>Fetches detailed information about a specific meal by ID.</p>
+            <strong>Response:</strong> Meal details as JSON.
+        </div>
+
+        <!-- Get Workout Details -->
+        <div class="endpoint">
+            <h2>Get Workout Details</h2>
+            <p class="method">GET /get_workout_details?workoutId=string</p>
+            <p>Fetches detailed information about a specific workout by ID.</p>
+            <strong>Response:</strong> Workout details (with exercises) as JSON.
+        </div>
+        <div class="endpoint">
+            <h2>Add Workout to Favorites</h2>
+            <p class="method">POST /add_workout_to_favorites</p>
+            <p>Adds an existing workout to the user's favorites and associates it with today's entry.</p>
+            <strong>Request Body:</strong>
+            <pre>
+        {
+            "workout_id": "string",
+            "email": "string"
+        }
+            </pre>
+            <strong>Response:</strong>
+            <pre>
+        {
+            "message": "Workout added to favorites and associated with today's entry",
+            "workout_id": "string"
+        }
+            </pre>
+        </div>
+        <div class="endpoint">
+            <h2>Check if Meal is Favorite</h2>
+            <p class="method">POST /check_is_favorite_meal</p>
+            <p>Checks if a specified meal is in the user's favorites.</p>
+            <strong>Request Body:</strong>
+            <pre>
+        {
+            "meal_id": "string",
+            "email": "string"
+        }
+            </pre>
+            <strong>Response:</strong>
+            <pre>
+        {
+            "is_favorite": true or false
+        }
+            </pre>
+        </div>
+        <div class="endpoint">
+            <h2>Check if Meal is Favorite</h2>
+            <p class="method">POST /check_is_favorite_meal</p>
+            <p>Checks if a specified meal is in the user's favorites.</p>
+            <strong>Request Body:</strong>
+            <pre>
+        {
+            "meal_id": "string",
+            "email": "string"
+        }
+            </pre>
+            <strong>Response:</strong>
+            <pre>
+        {
+            "is_favorite": true or false
+        }
+            </pre>
+        </div>
+        <div class="endpoint">
+            <h2>Create Favorite Workout</h2>
+            <p class="method">POST /create_favorite_workout</p>
+            <p>Creates a new workout, adds it to the user's favorites, and associates it with today's entry.</p>
+            <strong>Request Body:</strong>
+            <pre>
+        {
+            "email": "string",
+            "name": "string (optional)",
+            "exercises": [
+                {
+                    "name": "string",
+                    "reps": number,
+                    "sets": number,
+                    "weight": "string",
+                    "avg_calories_burned": number,
+                    "body_parts": "string",
+                    "description": "string"
+                },
+                ...
+            ],
+            "body_part_focus": "string",
+            "total_minutes": number
+        }
+            </pre>
+            <strong>Response:</strong>
+            <pre>
+        {
+            "message": "Workout created successfully",
+            "workout_id": "string"
+        }
+            </pre>
+        </div>
+    </div>
+</body>
+</html>
