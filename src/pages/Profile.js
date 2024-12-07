@@ -8,6 +8,7 @@ import FavoriteMeals from "../components/profile/FavoriteMeals";
 import FavoriteWorkouts from "../components/profile/FavoriteWorkouts";
 import AddMealDialog from "../components/profile/AddMealDialog";
 import AddWorkoutDialog from "../components/profile/AddWorkoutDialog";
+import GenerateCalendarFile from "../components/profile/GenerateCalendarFile";
 
 /**
  * Profile component allows the user to view and edit their profile,
@@ -136,7 +137,7 @@ function Profile() {
     setNewWorkout((prev) => ({
       ...prev,
       exercises: prev.exercises.map((exercise, i) =>
-        i === index ? { ...exercise, [field]: value } : exercise,
+        i === index ? { ...exercise, [field]: value } : exercise
       ),
     }));
   };
@@ -275,11 +276,11 @@ function Profile() {
 
         if (type === "meal") {
           setMealDetails((prevDetails) =>
-            prevDetails.filter((meal) => meal && meal.id !== id),
+            prevDetails.filter((meal) => meal && meal.id !== id)
           );
         } else {
           setWorkoutDetails((prevDetails) =>
-            prevDetails.filter((workout) => workout && workout.id !== id),
+            prevDetails.filter((workout) => workout && workout.id !== id)
           );
         }
       }
@@ -312,7 +313,9 @@ function Profile() {
   // Fetch workout details when favorited workouts change
   useEffect(() => {
     const fetchWorkoutDetails = async (workoutId) => {
-      const response = await fetch(`/get_workout_details?workoutId=${workoutId}`);
+      const response = await fetch(
+        `/get_workout_details?workoutId=${workoutId}`
+      );
       return response.ok ? response.json() : null;
     };
 
@@ -328,10 +331,14 @@ function Profile() {
       <Typography variant="h4" gutterBottom>
         Profile Page
       </Typography>
+      <GenerateCalendarFile />
       <Card>
         <CardContent>
           {!isEditing ? (
-            <ProfileInfo profileData={profileData} onEdit={() => setIsEditing(true)} />
+            <ProfileInfo
+              profileData={profileData}
+              onEdit={() => setIsEditing(true)}
+            />
           ) : (
             <ProfileForm
               profileData={profileData}
