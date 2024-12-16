@@ -3,7 +3,7 @@ name: Deploy to Firebase Hosting
 on:
   push:
     branches:
-      - deploy1
+      - deploy
 
 jobs:
   deploy:
@@ -23,7 +23,7 @@ jobs:
         run: npm install
 
       - name: Build React App
-        run: npm run build
+        run: CI=false npm run build
 
       - name: Deploy to Firebase Hosting
         uses: FirebaseExtended/action-hosting-deploy@v0
@@ -31,4 +31,4 @@ jobs:
           repoToken: "${{ secrets.GITHUB_TOKEN }}"
           firebaseServiceAccount: "${{ secrets.FIREBASE_SERVICE_ACCOUNT }}"
           channelId: live  # Optional: Use "live" for production or other preview channels
-          projectId: your-firebase-project-id
+          projectId: cs130-group-project-9b447

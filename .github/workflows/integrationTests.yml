@@ -3,10 +3,10 @@ name: Integration Tests
 on:
   push:
     branches:
-      - main1
+      - main
   pull_request:
     branches:
-      - main1
+      - main
   workflow_run:
     workflows: ["Frontend Unit Tests", "Backend Unit Tests"]
     types:
@@ -31,21 +31,42 @@ jobs:
         with:
           python-version: 3.9
 
+      - name: Install React Dependencies
+        run: npm install
+
       - name: Install Backend Dependencies
         run: pip install -r requirements.txt
 
-      - name: Download React Build Artifacts
-        uses: actions/download-artifact@v3
-        with:
-          name: react-build
+      # - name: Download React Build Artifacts
+      #   uses: actions/download-artifact@v3
+      #   with:
+      #     name: react-build
+      - run: npm install -g serve
+
+      - name: Build React App
+        run: CI=false npm run build
+
 
       - name: Serve React App
-        run: npx serve -s build &
-      
+        run: npx serve -s build -l 3000 &
+        env:
+          PORT: 3000 # Ensure this doesn't conflict with Flask's port
+      # - name: test
+      #   run: npm start
+
       - name: Start Backend Server
         run: flask run &
         env:
           FLASK_APP: app.py
+          FLASK_RUN_PORT: 5001 # Ensure Flask is running on a known port
+
+
+
+      - name: Install Playwright
+        run: npx playwright install
+
+      - name: Install Playwright Dependencies
+        run: npx playwright install-deps
 
       - name: Run Integration Tests
-        run: npm run test:e2e
+        run: npx playwright test
